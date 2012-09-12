@@ -3,8 +3,8 @@
 " File:         addons/lh-compil-hints/plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://code.google.com/p/lh-vim/>
-" Version:      001
-let s:k_version = 1
+" Version:      002
+let s:k_version = 2
 " Created:      10th Apr 2012
 " Last Update:  $Date$
 " License:      GPLv3
@@ -25,7 +25,7 @@ let s:k_version = 1
 "       Requires Vim7+
 "       Best installed with VAM
 " History:      
-"       This plugin is strongly inspire by syntastic, but it restrict its work
+"       This plugin is strongly inspired by syntastic, but it restricts its work
 "       to the result of the compilation.
 "       NB: it doesn't copy qflist() but always fetch the last version in
 "       order to automagically rely on vim to update the line numbers.
@@ -55,6 +55,21 @@ if lh#option#get('compil_hints_autostart', 0, 'g')
   call lh#compil_hints#start()
 endif
 " Auto-start }}}1
+"------------------------------------------------------------------------
+" Menus {{{1
+let g:compil_hints_menu= {
+      \ 'variable': 'lh#compil_hint#running',
+      \ 'idx_crt_value': lh#option#get('compil_hints_autostart', 0, 'g'),
+      \ 'values': [0, 1],
+      \ 'texts': ['no', 'yes'],
+      \ 'menu': {'priority': '50.110', 'name': 'Project.&Show compilation hints'},
+      \ }
+function! g:compil_hints_menu.hook() dict
+  call lh#compil_hints#toggle()
+endfunction
+call lh#menu#def_toggle_item(g:compil_hints_menu)
+
+" Menus }}}1
 "------------------------------------------------------------------------
 let &cpo=s:cpo_save
 "=============================================================================
