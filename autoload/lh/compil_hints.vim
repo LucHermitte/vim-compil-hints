@@ -3,8 +3,8 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://code.google.com/p/lh-vim/>
-" Version:      001
-let s:k_version = 1
+" Version:      002
+let s:k_version = 2
 " Created:      10th Apr 2012
 " Last Update:  $Date$
 " License:      GPLv3
@@ -74,11 +74,13 @@ function! lh#compil_hints#toggle()
   if s:running | call lh#compil_hints#stop()
   else         | call lh#compil_hints#start()
   endif
+  let lh#compil_hint#running = s:running
 endfunction
 
 " Signs {{{3
 " Function: Sstart() {{{3
 function! s:Sstart()
+  call lh#compil_hints#update()
 endfunction
 
 " Function: Sstop() {{{3
