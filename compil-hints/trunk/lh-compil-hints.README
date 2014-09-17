@@ -1,12 +1,12 @@
                              --------------------
-                            lh-compil-hints v0.0.1
+                            lh-compil-hints v0.2.0
                              --------------------
 
 lh-compil-hints is a plugin related to compilation.
 
 Audience      : Any developers, 
 Requirements  : Vim 7, lh-vim-lib (3.1.0)
-Required by   : BuildToolsWrapper exploit it when installed
+Required by   : BuildToolsWrapper exploits it when installed
 Author        : Luc Hermitte
 License       : GPLv3
                 http://code.google.com/p/lh-vim/wiki/License
