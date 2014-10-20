@@ -3,8 +3,8 @@
 " File:         addons/lh-compil-hints/plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://code.google.com/p/lh-vim/>
-" Version:      0.2.0
-let s:k_version = 020
+" Version:      0.2.1
+let s:k_version = 021
 " Created:      10th Apr 2012
 " Last Update:  $Date$
 " License:      GPLv3

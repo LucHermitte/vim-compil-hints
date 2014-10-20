@@ -3,8 +3,8 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://code.google.com/p/lh-vim/>
-" Version:      0.2.0
-let s:k_version = 020
+" Version:      0.2.1
+let s:k_version = 021
 " Created:      10th Apr 2012
 " Last Update:  $Date$
 " License:      GPLv3
@@ -116,7 +116,7 @@ endfunction
 function! s:Sclear()
   if lh#option#get('compil_hint_harsh_signs_removal_enabled', 1, 'bg')
     for b in keys(s:signs_buffers)
-      if buflisted(b)
+      if buflisted(b+0) " need to convert the key (stored as a string) to a number
         exe 'sign unplace * buffer='.b
       endif
     endfor
