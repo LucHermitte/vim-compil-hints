@@ -1,21 +1,20 @@
 "=============================================================================
-" $Id$
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
-" Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
-"		<URL:http://code.google.com/p/lh-vim/>
-" Version:      0.2.1
-let s:k_version = 021
+" Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
+"               <URL:http://github.com/LucHermitte/vim-compil-hints>
+" Version:      0.2.2
+let s:k_version = 022
 " Created:      10th Apr 2012
-" Last Update:  $Date$
+" Last Update:  20th May 2016
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
-" 
+"
 " After a program has been compiled, execute lh#compil_hints#update() to update
 " the signs and the balloons that highlight the compilation errors and warnings.
 "
-" - track the changes and update only the related signs 
-" 
+" - track the changes and update only the related signs
+"
 " }}}1
 "=============================================================================
 
@@ -76,7 +75,7 @@ function! lh#compil_hints#stop()
 endfunction
 
 " Function: lh#compil_hints#update() {{{2
-function! lh#compil_hints#update()
+function! lh#compil_hints#update() abort
   if ! g:compil_hints_running |  return | endif
   if s:UseSigns()
     call s:Supdate()
@@ -86,7 +85,7 @@ endfunction
 "------------------------------------------------------------------------
 " ## Internal functions {{{1
 " Function: s:Init() {{{2
-function! s:Init()
+function! s:Init() abort
   " Signs
   if !exists('s:signs')
     let s:signs=[]
@@ -103,17 +102,17 @@ endfunction
 
 " # Signs {{{2
 " Function: Sstart() {{{3
-function! s:Sstart()
+function! s:Sstart() abort
   call lh#compil_hints#update()
 endfunction
 
 " Function: Sstop() {{{3
-function! s:Sstop()
+function! s:Sstop() abort
   call s:Sclear()
 endfunction
 
 " Function: Sclear() {{{3
-function! s:Sclear()
+function! s:Sclear() abort
   if lh#option#get('compil_hint_harsh_signs_removal_enabled', 1, 'bg')
     for b in keys(s:signs_buffers)
       if buflisted(b+0) " need to convert the key (stored as a string) to a number
@@ -122,7 +121,7 @@ function! s:Sclear()
     endfor
   else
     for s in s:signs
-      silent! exe 'sign unplace '.(s) 
+      silent! exe 'sign unplace '.(s)
     endfor
   endif
   let s:signs=[]
@@ -131,14 +130,14 @@ endfunction
 
 " Function: s:ReduceQFList() {{{3
 " Merges QF list inputs to have one entry per file+line_number
-function! s:ReduceQFList(qflist)
+function! s:ReduceQFList(qflist) abort
   let errors  = {}
   for qf in a:qflist
     " note: "instantiated from" may be specific to C&C++ compilers like GCC. An
     " option may be required to extend the CompilHintsContext highlighting to
     " other filetypes/compilers.
     let type = 'CompilHints' . (
-          \   (qf.type ==? 'w' || qf.text =~? '^\swarning:')             ? 'Warning' 
+          \   (qf.type ==? 'w' || qf.text =~? '^\swarning:')             ? 'Warning'
           \ : (qf.text =~? '^\s*note:')                                  ? 'Note'
           \ : (qf.text =~? '^\s*instantiated from\|within this context') ? 'Context'
           \ :                                                              'Error')
@@ -157,12 +156,12 @@ function! s:ReduceQFList(qflist)
 endfunction
 
 " Function: s:WorstType(errors) {{{3
-function! s:WorstType(errors)
+function! s:WorstType(errors) abort
   let worst = 'CompilHintsNote'
   for type in values(a:errors)
     if         (type == 'CompilHintsError')
-          \ || (type == 'CompilHintsWarning' && worst != 'CompilHintsError') 
-          \ || (type == 'CompilHintsContext' && worst == 'CompilHintsNote') 
+          \ || (type == 'CompilHintsWarning' && worst != 'CompilHintsError')
+          \ || (type == 'CompilHintsContext' && worst == 'CompilHintsNote')
       let worst = type
     endif
   endfor
@@ -171,7 +170,7 @@ endfunction
 
 " Function: Supdate() {{{3
 let s:first_sign_id = 27000
-function! s:Supdate()
+function! s:Supdate() abort
   if !g:compil_hints_running | return | endif
 
   call s:Sclear()
@@ -186,13 +185,13 @@ function! s:Supdate()
   for [bufnr, file_with_errors] in items(errors)
     for [lnum, what] in items(file_with_errors)
       let type = s:WorstType(what)
-      let cmd = 'sign place '.nb
+      let cmd = 'silent! sign place '.nb
             \ .' line='.lnum
             \ .' name='.type
             \ .' buffer='.bufnr
       exe cmd
       let nb += 1
-      call extend(s:signs_buffers, { bufnr : 1}) 
+      call extend(s:signs_buffers, { bufnr : 1})
     endfor
   endfor
   let s:signs=range(s:first_sign_id, nb-1)
@@ -200,12 +199,12 @@ endfunction
 
 " # Ballons {{{2
 " Function: s:Bstart() {{{3
-function! s:Bstart()
+function! s:Bstart() abort
   set beval bexpr=lh#compil_hints#ballon_expr()
 endfunction
 
 " Function: s:Bstop() {{{3
-function! s:Bstop()
+function! s:Bstop() abort
   if &bexpr=='lh#compil_hints#ballon_expr()'
     " reset to default
     set beval& bexpr&
@@ -213,7 +212,7 @@ function! s:Bstop()
 endfunction
 
 " Function: lh#compil_hints#ballon_expr() {{{3
-function! lh#compil_hints#ballon_expr()
+function! lh#compil_hints#ballon_expr() abort
   " Every time a file is updated, the dictionary returned by getqflist() is
   " updated regarding line numbers. As such, We cannot cache anything.
   " At best, we merge different lines.
@@ -227,6 +226,7 @@ endfunction
 
 
 call s:Init()
+" }}}1
 "------------------------------------------------------------------------
 let &cpo=s:cpo_save
 "=============================================================================
