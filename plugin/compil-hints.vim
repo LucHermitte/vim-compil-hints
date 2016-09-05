@@ -1,12 +1,11 @@
 "=============================================================================
-" $Id$
 " File:         addons/lh-compil-hints/plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
-"		<URL:http://code.google.com/p/lh-vim/>
-" Version:      0.2.1
-let s:k_version = 021
+"		<URL:http://github.com/LucHermitte/vim-compil-hints>
+" Version:      0.2.3
+let s:k_version = 023
 " Created:      10th Apr 2012
-" Last Update:  $Date$
+" Last Update:  05th Sep 2016
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -26,17 +25,17 @@ let s:k_version = 021
 "             Improves greatly the removal of signs. However, this options does
 "             remove all signs in a buffer, even the one not placed by
 "             compil_hints.
-" 
+"
 "------------------------------------------------------------------------
 " Installation:
-"       Requires Vim7+
+"       Requires Vim7+ and +bexpr
 "       Best installed with VAM/vim-pi
-" History:      
+" History:
 "       This plugin is strongly inspired by syntastic, but it restricts its work
 "       to the result of the compilation.
 "       NB: it doesn't copy qflist() but always fetch the last version in
 "       order to automagically rely on vim to update the line numbers.
-" TODO:         
+" TODO:
 "       Handle local options for ballon use
 "       When the quickfix list changes (background compilation with BTW), the
 "       balloons stop displaying anything.
@@ -44,7 +43,7 @@ let s:k_version = 021
 "=============================================================================
 
 " Avoid global reinclusion {{{1
-if &cp || (exists("g:loaded_compil_hints")
+if &cp || !has('balloon_eval') || (exists("g:loaded_compil_hints")
       \ && (g:loaded_compil_hints >= s:k_version)
       \ && !exists('g:force_reload_compil_hints'))
   finish
