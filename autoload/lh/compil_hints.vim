@@ -2,8 +2,8 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.0.0
-let s:k_version = 100
+" Version:      1.0.1
+let s:k_version = 101
 " Created:      10th Apr 2012
 " Last Update:  12th Jun 2018
 " License:      GPLv3

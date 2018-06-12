@@ -99,9 +99,14 @@ Vim
 - When the quickfix list changes (background compilation with
   [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/)), the balloons
   stop displaying anything.
-- Find some UTF-8 glyphs when icons cannot be used
+- Test UTF-8 glyphs when icons cannot be used
+- Listen for `QuickFixCmdPost`, avoid parsing multiple times when doing
+  background compilation...
 
 ## History
+* V 1.0.1.
+    * Detect when XPM icons cannot be used.
+    * USe the first UTF-8 glyphs
 * V 1.0.0.
     * The XPM icons used come from Vim source code, they're under
       [Vim License](doc/uganda.txt).
