@@ -94,17 +94,24 @@ endfunction
 " ## Internal functions {{{1
 " Function: s:Init() {{{2
 let s:pixmaps_dir = expand('<sfile>:p:h:h:h').'/pixmaps/'
+function! s:sign(utf, txt) abort
+  " Text: https://unicode-table.com
+  " WARNING SIGN: "\u26a0" (not in all fonts...)
+  " INFORMATION SOURCE: "\u2139"
+  return has('multi_byte') && &enc=='utf-8' ? a:utf : a:txt
+endfunction
+
 function! s:Init() abort
   " Signs
   let s:signs         = get(s:, 'signs', [])
   let s:signs_buffers = get(s:, 'signs_buffers', {})
   " Highlighting
   let signs = []
-  let signs += [{'kind': 'Error',   'text': '>>', 'hl': 'error',    'icon': s:pixmaps_dir.'error.xpm'}]
-  let signs += [{'kind': 'Warning', 'text': '>>', 'hl': 'todo',     'icon': s:pixmaps_dir.'alert.xpm'}]
-  let signs += [{'kind': 'Note',    'text': '>>', 'hl': 'comment',  'icon': s:pixmaps_dir.'info.xpm'}]
+  let signs += [{'kind': 'Error',   'text': s:sign("\u274c", 'XX'), 'hl': 'error',    'icon': s:pixmaps_dir.'error.xpm'}]
+  let signs += [{'kind': 'Warning', 'text': s:sign("\u26DB", '!!'), 'hl': 'todo',     'icon': s:pixmaps_dir.'alert.xpm'}]
+  let signs += [{'kind': 'Note',    'text': s:sign("\U1F6C8", 'ii'), 'hl': 'comment',  'icon': s:pixmaps_dir.'info.xpm'}]
   let signs += [{'kind': 'Context', 'text': '>>', 'hl': 'constant', 'icon': s:pixmaps_dir.'quest.xpm'}]
-  let signs += [{'kind': 'Here',    'text': '>>', 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
+  let signs += [{'kind': 'Here',    'text': s:sign("\u27a9", '->'), 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
   for s in signs
     let cmd  = 'sign define CompilHints'.( s.kind ).' text='.( s.text ).' texthl='.( s.hl )
     if has('xpm') || has('xpm_w32')
