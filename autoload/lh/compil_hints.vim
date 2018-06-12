@@ -106,7 +106,12 @@ function! s:Init() abort
   let signs += [{'kind': 'Context', 'text': '>>', 'hl': 'constant', 'icon': s:pixmaps_dir.'quest.xpm'}]
   let signs += [{'kind': 'Here',    'text': '>>', 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
   for s in signs
-    exe 'sign define CompilHints'.(s.kind).' text='.(s.text).' texthl='.(s.hl).' icon='.(s.icon)
+    let cmd  = 'sign define CompilHints'.( s.kind ).' text='.( s.text ).' texthl='.( s.hl )
+    if has('xpm') || has('xpm_w32')
+      let cmd .= ' icon='.fnameescape(s.icon)
+    endif
+    call s:Verbose(cmd)
+    exe cmd
   endfor
 endfunction
 
