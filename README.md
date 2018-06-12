@@ -36,29 +36,22 @@ The
 [options](https://github.com/LucHermitte/lh-vim-lib/blob/master/doc/Options.md) are:
 
 #### `g:compil_hints.use_balloons`
-Activates the display of balloons
-
-boolean: [1]/0
+Activates the display of balloons -- boolean: [1]/0
 
 Requires Vim to be compiled with
 [`+balloon_eval`](http://vimhelp.appspot.com/various.txt.html#%2bballoon_eval)
 support.
 
 #### `g:compil_hints.use_signs`
-Activates the display of signs
-
-boolean: [1]/0
+Activates the display of signs -- boolean: [1]/0
 
 Requires Vim to be compiled with
 [`+signs`](http://vimhelp.appspot.com/various.txt.html#%2bsigns) support.
 
 #### `g:compil_hints.autostart`
-When sets, the plugin is automatically started.
-
-boolean: 1/[0]
+When sets, the plugin is automatically started -- boolean: 1/[0]
 
 #### `(bpg):compil_hints.context_re`
-
 Regular expression used to recognize and display differently messages like:
 
 ```
@@ -68,8 +61,8 @@ required from here
 ```
 
 #### `(bpg):compil_hints.harsh_signs_removal_enabled`
-Improves greatly the removal of signs. However, this options does remove all
-signs in a buffer, even the one not placed by compil-hints.
+Improves greatly the time required to remove signs. However, this options does
+remove all signs in a buffer, even the one not placed by compil-hints.
 
 boolean: 1/0; default: `! exists('*execute')` => false with recent versions of
 Vim
@@ -102,23 +95,21 @@ Vim
     ```
 
 ## TO DO
-There is still a lot to be done:
 - Handle local options for balloon use
 - When the quickfix list changes (background compilation with
   [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/)), the balloons
   stop displaying anything.
 - Find some UTF-8 glyphs when icons cannot be used
 
-
 ## History
+* V 1.0.0.
+    * The XPM icons used come from Vim source code, they're under
+      [Vim License](doc/uganda.txt).
+    * Options have been renamed from `compil_hint_xxx` to `compil_hints.xxx`
+
 * V 0.2.x.
     * This plugin is strongly inspired by syntastic, but it restricts its work to
     the result of the compilation.
-
-* V 1.0.0.
-    * The XPM icons used come from Vim source code, they're under
-      [Vim License](blob/master/doc/uganda.txt).
-    * Options have been renamed from `compil_hint_xxx` to `compil_hints.xxx`
 
 ## Notes
 NB: it doesn't copy qflist() but always fetch the last version in order to
