@@ -2,10 +2,10 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      0.2.3
-let s:k_version = 023
+" Version:      1.0.0
+let s:k_version = 100
 " Created:      10th Apr 2012
-" Last Update:  20th May 2016
+" Last Update:  12th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -28,37 +28,41 @@ function! lh#compil_hints#version()
 endfunction
 
 " # Debug   {{{2
-let s:verbose = 0
+let s:verbose = get(s:, 'verbose', 0)
 function! lh#compil_hints#verbose(...)
   if a:0 > 0 | let s:verbose = a:1 | endif
   return s:verbose
 endfunction
 
-function! s:Verbose(expr)
+function! s:Log(expr, ...) abort
+  call call('lh#log#this',[a:expr]+a:000)
+endfunction
+
+function! s:Verbose(expr, ...) abort
   if s:verbose
-    echomsg a:expr
+    call call('s:Log',[a:expr]+a:000)
   endif
 endfunction
 
-function! lh#compil_hints#debug(expr)
+function! lh#compil_hints#debug(expr) abort
   return eval(a:expr)
 endfunction
 
 " # Options {{{2
 function! s:UseBalloons()
-  return lh#option#get('compil_hints_use_balloons',  has('balloon_eval'), 'g')
+  return has('balloon_eval') && get(g:compil_hints, 'use_balloons', 1)
 endfunction
 
 function! s:UseSigns()
-  return lh#option#get('compil_hints_use_signs',  has('signs'), 'g')
+  return has('signs')        && get(g:compil_hints, 'use_signs', 1)
 endfunction
 
 "------------------------------------------------------------------------
 " ## Exported functions {{{1
 
 " Function: lh#compil_hints#start() {{{2
-function! lh#compil_hints#start()
-  let g:compil_hints_running = 1
+function! lh#compil_hints#start() abort
+  let g:compil_hints.running = 1
   if s:UseBalloons()
     call s:Bstart()
   endif
@@ -68,15 +72,19 @@ function! lh#compil_hints#start()
 endfunction
 
 " Function: lh#compil_hints#stop() {{{2
-function! lh#compil_hints#stop()
-  let g:compil_hints_running = 0
-  call s:Bstop()
-  call s:Sstop()
+function! lh#compil_hints#stop() abort
+  let g:compil_hints.running = 0
+  if has('balloon_eval')
+    call s:Bstop()
+  endif
+  if has('signs')
+    call s:Sstop()
+  endif
 endfunction
 
 " Function: lh#compil_hints#update() {{{2
 function! lh#compil_hints#update() abort
-  if ! g:compil_hints_running |  return | endif
+  if ! g:compil_hints.running |  return | endif
   if s:UseSigns()
     call s:Supdate()
   endif
@@ -85,19 +93,21 @@ endfunction
 "------------------------------------------------------------------------
 " ## Internal functions {{{1
 " Function: s:Init() {{{2
+let s:pixmaps_dir = expand('<sfile>:p:h:h:h').'/pixmaps/'
 function! s:Init() abort
   " Signs
-  if !exists('s:signs')
-    let s:signs=[]
-  endif
-  if !exists('s:signs_buffers')
-    let s:signs_buffers={}
-  endif
+  let s:signs         = get(s:, 'signs', [])
+  let s:signs_buffers = get(s:, 'signs_buffers', {})
   " Highlighting
-  sign define CompilHintsError   text=>> texthl=error
-  sign define CompilHintsWarning text=>> texthl=todo
-  sign define CompilHintsNote    text=>> texthl=comment
-  sign define CompilHintsContext text=>> texthl=constant
+  let signs = []
+  let signs += [{'kind': 'Error',   'text': '>>', 'hl': 'error',    'icon': s:pixmaps_dir.'error.xpm'}]
+  let signs += [{'kind': 'Warning', 'text': '>>', 'hl': 'todo',     'icon': s:pixmaps_dir.'alert.xpm'}]
+  let signs += [{'kind': 'Note',    'text': '>>', 'hl': 'comment',  'icon': s:pixmaps_dir.'info.xpm'}]
+  let signs += [{'kind': 'Context', 'text': '>>', 'hl': 'constant', 'icon': s:pixmaps_dir.'quest.xpm'}]
+  let signs += [{'kind': 'Here',    'text': '>>', 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
+  for s in signs
+    exe 'sign define CompilHints'.(s.kind).' text='.(s.text).' texthl='.(s.hl).' icon='.(s.icon)
+  endfor
 endfunction
 
 " # Signs {{{2
@@ -113,34 +123,40 @@ endfunction
 
 " Function: Sclear() {{{3
 function! s:Sclear() abort
-  if lh#option#get('compil_hint_harsh_signs_removal_enabled', 1, 'bg')
+  if lh#option#get('compil_hints.harsh_signs_removal_enabled', !exists('*execute'))
     for b in keys(s:signs_buffers)
       if buflisted(b+0) " need to convert the key (stored as a string) to a number
         exe 'sign unplace * buffer='.b
       endif
     endfor
+  elseif exists('*execute')
+    " Should be fast enough => TODO: bench!!!
+    call execute(map(s:signs, '"sign unplace ".v:val'))
   else
+    " This is really slow...
     for s in s:signs
       silent! exe 'sign unplace '.(s)
     endfor
   endif
-  let s:signs=[]
-  let s:signs_buffers={}
+  let s:signs        = []
+  let s:signs_buffers= {}
 endfunction
 
 " Function: s:ReduceQFList() {{{3
 " Merges QF list inputs to have one entry per file+line_number
 function! s:ReduceQFList(qflist) abort
+  " note: "instantiated from" may be specific to C&C++ compilers like GCC. An
+  " option may be required to extend the CompilHintsContext highlighting to
+  " other filetypes/compilers.
+  let context_re = lh#option#get('compil_hints.context_re', '^\s*instantiated from\|within this context\|required from here')
   let errors  = {}
   for qf in a:qflist
-    " note: "instantiated from" may be specific to C&C++ compilers like GCC. An
-    " option may be required to extend the CompilHintsContext highlighting to
-    " other filetypes/compilers.
-    let type = 'CompilHints' . (
+    let type =
           \   (qf.type ==? 'w' || qf.text =~? '^\swarning:')             ? 'Warning'
           \ : (qf.text =~? '^\s*note:')                                  ? 'Note'
-          \ : (qf.text =~? '^\s*instantiated from\|within this context') ? 'Context'
-          \ :                                                              'Error')
+          \ : (qf.text =~? context_re)                                   ? 'Context'
+          \ : (qf.type ==? 'e' || qf.text =~? '^\serror:')               ? 'Error'
+          \ :                                                              'Here'
     if !has_key(errors, qf.bufnr)
       let errors[qf.bufnr] = {}
     endif
@@ -156,22 +172,17 @@ function! s:ReduceQFList(qflist) abort
 endfunction
 
 " Function: s:WorstType(errors) {{{3
+let s:k_levels = ['Error', 'Warning', 'Context', 'Note', 'Here']
 function! s:WorstType(errors) abort
-  let worst = 'CompilHintsNote'
-  for type in values(a:errors)
-    if         (type == 'CompilHintsError')
-          \ || (type == 'CompilHintsWarning' && worst != 'CompilHintsError')
-          \ || (type == 'CompilHintsContext' && worst == 'CompilHintsNote')
-      let worst = type
-    endif
-  endfor
-  return worst
+  let idx = min(map(values(a:errors), 'index(s:k_levels, v:val)'))
+  call lh#assert#value(idx).is_ge(0)
+  return s:k_levels[idx]
 endfunction
 
 " Function: Supdate() {{{3
 let s:first_sign_id = 27000
 function! s:Supdate() abort
-  if !g:compil_hints_running | return | endif
+  if !g:compil_hints.running | return | endif
 
   call s:Sclear()
 
@@ -181,18 +192,22 @@ function! s:Supdate() abort
 
   let s:signs_buffers = {}
 
+  " let g:whats = []
   let nb = s:first_sign_id
   for [bufnr, file_with_errors] in items(errors)
-    for [lnum, what] in items(file_with_errors)
-      let type = s:WorstType(what)
-      let cmd = 'silent! sign place '.nb
-            \ .' line='.lnum
-            \ .' name='.type
-            \ .' buffer='.bufnr
-      exe cmd
-      let nb += 1
+    if !empty(file_with_errors)
+      for [lnum, what] in items(file_with_errors)
+        " let g:whats += [what]
+        let type = s:WorstType(what)
+        let cmd = 'silent! sign place '.nb
+              \ .' line='.lnum
+              \ .' name=CompilHints'.type
+              \ .' buffer='.bufnr
+        exe cmd
+        let nb += 1
+      endfor
       call extend(s:signs_buffers, { bufnr : 1})
-    endfor
+    endif
   endfor
   let s:signs=range(s:first_sign_id, nb-1)
 endfunction

@@ -1,4 +1,4 @@
-Copyright 2001-2015, Luc Hermitte
+Copyright 2001-2018, Luc Hermitte
 
 # Scripts License
 
@@ -7,6 +7,7 @@ distributed under FSF's GPLv3 license.
 
 See http://www.gnu.org/licenses/gpl.txt for more information.
 
+XPM icons are under [Vim Charity License](blob/master/doc/uganda.txt).
 
 # License exception for generated code
 

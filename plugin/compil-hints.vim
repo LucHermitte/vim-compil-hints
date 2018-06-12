@@ -2,10 +2,10 @@
 " File:         addons/lh-compil-hints/plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      0.2.3
-let s:k_version = 023
+" Version:      1.0.0
+let s:k_version = 100
 " Created:      10th Apr 2012
-" Last Update:  05th Sep 2016
+" Last Update:  12th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -15,13 +15,13 @@ let s:k_version = 023
 "       :CompilHintsToggle -- to start/stop using the plugin
 "       :CompilHintsUpdate -- to update the signs to display
 " Options:
-"       g:compil_hints_use_balloons                  - boolean: [1]/0
+"       g:compil_hints.use_balloons                   - boolean: [1]/0
 "             Activates the display of balloons
-"       g:compil_hints_use_signs                     - boolean: [1]/0
+"       g:compil_hints.use_signs                      - boolean: [1]/0
 "             Activates the display of signs
-"       g:compil_hints_autostart                     - boolean: 1/[0]
+"       g:compil_hints.autostart                      - boolean: 1/[0]
 "             When sets, the plugin is automatically started.
-"       [bg]:compil_hint_harsh_signs_removal_enabled   boolean: [1]/0
+"       (bpg):compil_hints.harsh_signs_removal_enabled  boolean: [1]/0
 "             Improves greatly the removal of signs. However, this options does
 "             remove all signs in a buffer, even the one not placed by
 "             compil_hints.
@@ -36,7 +36,7 @@ let s:k_version = 023
 "       NB: it doesn't copy qflist() but always fetch the last version in
 "       order to automagically rely on vim to update the line numbers.
 " TODO:
-"       Handle local options for ballon use
+"       Handle local options for balloon use
 "       When the quickfix list changes (background compilation with BTW), the
 "       balloons stop displaying anything.
 " }}}1
@@ -59,17 +59,17 @@ command! CompilHintsToggle Toggle ProjectShowcompilationhints
 " Commands and Mappings }}}1
 "------------------------------------------------------------------------
 " Auto-start {{{1
-if lh#option#get('compil_hints_autostart', 0, 'g')
+let g:compil_hints = get(g:, 'compil_hints', {})
+
+if get(g:compil_hints, 'autostart', 0)
   call lh#compil_hints#start()
 endif
 " Auto-start }}}1
 "------------------------------------------------------------------------
 " Menus {{{1
-if !exists('g:compil_hints_running')
-  let compil_hints_running = 0
-endif
+let g:compil_hints.running = get(g:compil_hints, 'running', 0)
 
-let g:compil_hints_menu= {
+let s:compil_hints_menu= {
       \ 'variable': 'compil_hints_running',
       \ 'idx_crt_value': lh#option#get('compil_hints_autostart', 0, 'g'),
       \ 'values': [0, 1],
@@ -77,10 +77,7 @@ let g:compil_hints_menu= {
       \ 'menu': {'priority': '50.110', 'name': 'Project.&Show compilation hints'},
       \ 'actions': [function("lh#compil_hints#stop"), function("lh#compil_hints#start")]
       \ }
-" function! g:compil_hints_menu.hook() dict
-  " call lh#compil_hints#toggle()
-" endfunction
-call lh#menu#def_toggle_item(g:compil_hints_menu)
+call lh#menu#def_toggle_item(s:compil_hints_menu)
 
 " Menus }}}1
 "------------------------------------------------------------------------
