@@ -72,7 +72,7 @@ Vim
   * Requirements: Vim 7.+,
     [`+balloon_eval`](http://vimhelp.appspot.com/various.txt.html#%2bballoon_eval),
     [`+signs`](http://vimhelp.appspot.com/various.txt.html#%2bsigns),
-    [lh-vim-lib](http://github.com/LucHermitte/lh-vim-lib)
+    [lh-vim-lib](http://github.com/LucHermitte/lh-vim-lib) 4.5.0.
 
   * With [vim-addon-manager](https://github.com/MarcWeber/vim-addon-manager), install vim-compil-hints.
 

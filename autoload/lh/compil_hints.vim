@@ -5,7 +5,7 @@
 " Version:      1.0.1
 let s:k_version = 101
 " Created:      10th Apr 2012
-" Last Update:  12th Jun 2018
+" Last Update:  13th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -102,16 +102,28 @@ function! s:sign(utf, txt) abort
 endfunction
 
 function! s:Init() abort
+  " let error = lh#encoding#find_best_glyph(["\u274c", 'XX'])
+  " let alert = lh#encoding#find_best_glyph(["\u26a0", "\u26DB", '!!'])
+  " let note  = lh#encoding#find_best_glyph(["\u2139", "\U1F6C8", 'ii'])
+  " let here  = lh#encoding#find_best_glyph(["\u27a9", '->'])
+
+  let [error, alert, note, ctx, here] = lh#encoding#find_best_glyph(
+        \   ["\u274c", 'XX']
+        \ , ["\u26a0", "\u26DB", '!!']
+        \ , ["\u2139", "\U1F6C8", 'ii']
+        \ , ['>>']
+        \ , ["\u27a9", '->']
+        \ )
   " Signs
   let s:signs         = get(s:, 'signs', [])
   let s:signs_buffers = get(s:, 'signs_buffers', {})
   " Highlighting
   let signs = []
-  let signs += [{'kind': 'Error',   'text': s:sign("\u274c", 'XX'), 'hl': 'error',    'icon': s:pixmaps_dir.'error.xpm'}]
-  let signs += [{'kind': 'Warning', 'text': s:sign("\u26DB", '!!'), 'hl': 'todo',     'icon': s:pixmaps_dir.'alert.xpm'}]
-  let signs += [{'kind': 'Note',    'text': s:sign("\U1F6C8", 'ii'), 'hl': 'comment',  'icon': s:pixmaps_dir.'info.xpm'}]
-  let signs += [{'kind': 'Context', 'text': '>>', 'hl': 'constant', 'icon': s:pixmaps_dir.'quest.xpm'}]
-  let signs += [{'kind': 'Here',    'text': s:sign("\u27a9", '->'), 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
+  let signs += [{'kind': 'Error',   'text': error, 'hl': 'error',    'icon': s:pixmaps_dir.'error.xpm'}]
+  let signs += [{'kind': 'Warning', 'text': alert, 'hl': 'todo',     'icon': s:pixmaps_dir.'alert.xpm'}]
+  let signs += [{'kind': 'Note',    'text': note , 'hl': 'comment',  'icon': s:pixmaps_dir.'info.xpm'}]
+  let signs += [{'kind': 'Context', 'text': ctx  , 'hl': 'constant', 'icon': s:pixmaps_dir.'quest.xpm'}]
+  let signs += [{'kind': 'Here',    'text': here , 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
   for s in signs
     let cmd  = 'sign define CompilHints'.( s.kind ).' text='.( s.text ).' texthl='.( s.hl )
     if has('xpm') || has('xpm_w32')
