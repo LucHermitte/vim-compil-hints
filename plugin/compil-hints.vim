@@ -87,7 +87,7 @@ function! s:stop() abort
   "
   " Yet, if g:compil_hints.running is true, the correct stop() function needs
   " to be called when stopping (for the first time).
-  echomsg "next time, let's use the correct lh#compil_hints#stop()"
+  " echomsg "next time, let's use the correct lh#compil_hints#stop()"
   let s:compil_hints_menu.actions[0] = function("lh#compil_hints#stop")
 endfunction
 
