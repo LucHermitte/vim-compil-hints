@@ -95,7 +95,7 @@ Vim
     ```
 
 ## TO DO
-- Handle local options for balloon use
+- Handle local options for balloon use: use/restore `b:bexpr`
 - When the quickfix list changes (background compilation with
   [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/)), the balloons
   stop displaying anything.

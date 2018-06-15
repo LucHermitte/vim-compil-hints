@@ -5,7 +5,7 @@
 " Version:      1.0.1
 let s:k_version = 101
 " Created:      10th Apr 2012
-" Last Update:  13th Jun 2018
+" Last Update:  15th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -94,40 +94,52 @@ endfunction
 " ## Internal functions {{{1
 " Function: s:Init() {{{2
 let s:pixmaps_dir = expand('<sfile>:p:h:h:h').'/pixmaps/'
-function! s:sign(utf, txt) abort
-  " Text: https://unicode-table.com
-  " WARNING SIGN: "\u26a0" (not in all fonts...)
-  " INFORMATION SOURCE: "\u2139"
-  return has('multi_byte') && &enc=='utf-8' ? a:utf : a:txt
-endfunction
 
 function! s:Init() abort
-  " let error = lh#encoding#find_best_glyph(["\u274c", 'XX'])
-  " let alert = lh#encoding#find_best_glyph(["\u26a0", "\u26DB", '!!'])
-  " let note  = lh#encoding#find_best_glyph(["\u2139", "\U1F6C8", 'ii'])
-  " let here  = lh#encoding#find_best_glyph(["\u27a9", '->'])
-
-  let [error, alert, note, ctx, here] = lh#encoding#find_best_glyph(
-        \   ["\u274c", 'XX']
-        \ , ["\u26a0", "\u26DB", '!!']
-        \ , ["\u2139", "\U1F6C8", 'ii']
-        \ , ['>>']
-        \ , ["\u27a9", '->']
-        \ )
-  " Signs
+  " Initialize internal variables for Signs
   let s:signs         = get(s:, 'signs', [])
   let s:signs_buffers = get(s:, 'signs_buffers', {})
+
   " Highlighting
+  " - define sign texts, or icons
+  if has('gui_running') && (has('xpm') || has('xpm_w32'))
+    " In that case, we don't care!
+    " => No need to try to detect which glyphs are supported
+    let [error, warning, note, ctx, here] = repeat(['>>'], 5)
+
+    " TODO: permit to tune the icons used
+    " TODO: if we can use other icon types (png), we may not need UTF-8 glyphs
+    let icons = {}
+    let icons.Error   = s:pixmaps_dir.'error.xpm'
+    let icons.Warning = s:pixmaps_dir.'alert.xpm'
+    let icons.Note    = s:pixmaps_dir.'info.xpm'
+    let icons.Context = s:pixmaps_dir.'quest.xpm'
+    let icons.Here    = s:pixmaps_dir.'tb_jump.xpm'
+  else
+    " TODO: What if &enc isn't UTF-8 ?
+    let s_error   = lh#option#get('compil_hints.signs.error',   ["\u274c", 'XX']           , 'g')
+    let s_warning = lh#option#get('compil_hints.signs.warning', ["\u26a0", "\u26DB", '!!'] , 'g')
+    let s_note    = lh#option#get('compil_hints.signs.note',    ["\u2139", "\U1F6C8", 'ii'], 'g')
+    let s_context = lh#option#get('compil_hints.signs.context', ['>>']                     , 'g')
+    let s_info    = lh#option#get('compil_hints.signs.info',    ["\u27a9", '->']           , 'g')
+
+    let [error, warning, note, ctx, here] = lh#encoding#find_best_glyph(
+          \ 'compil-hints',
+          \ s_error, s_warning, s_note, s_context, s_info
+          \ )
+  endif
+
+  " - do define the signs
   let signs = []
-  let signs += [{'kind': 'Error',   'text': error, 'hl': 'error',    'icon': s:pixmaps_dir.'error.xpm'}]
-  let signs += [{'kind': 'Warning', 'text': alert, 'hl': 'todo',     'icon': s:pixmaps_dir.'alert.xpm'}]
-  let signs += [{'kind': 'Note',    'text': note , 'hl': 'comment',  'icon': s:pixmaps_dir.'info.xpm'}]
-  let signs += [{'kind': 'Context', 'text': ctx  , 'hl': 'constant', 'icon': s:pixmaps_dir.'quest.xpm'}]
-  let signs += [{'kind': 'Here',    'text': here , 'hl': 'todo',     'icon': s:pixmaps_dir.'tb_jump.xpm'}]
+  let signs += [{'kind': 'Error',   'text': error,   'hl': 'error'   }]
+  let signs += [{'kind': 'Warning', 'text': warning, 'hl': 'todo'    }]
+  let signs += [{'kind': 'Note',    'text': note ,   'hl': 'comment' }]
+  let signs += [{'kind': 'Context', 'text': ctx  ,   'hl': 'constant'}]
+  let signs += [{'kind': 'Here',    'text': here ,   'hl': 'todo'    }]
   for s in signs
     let cmd  = 'sign define CompilHints'.( s.kind ).' text='.( s.text ).' texthl='.( s.hl )
-    if has('xpm') || has('xpm_w32')
-      let cmd .= ' icon='.fnameescape(s.icon)
+    if exists('l:icons')
+      let cmd .= ' icon='.get(icons, s.kind, '__unexpected__')
     endif
     call s:Verbose(cmd)
     exe cmd
