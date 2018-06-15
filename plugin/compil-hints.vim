@@ -71,17 +71,39 @@ endif
 " Auto-start }}}1
 "------------------------------------------------------------------------
 " Menus {{{1
-let g:compil_hints.running = get(g:compil_hints, 'running', 0)
+" s:getSNR([func_name]) {{{3
+function! s:getSNR(...)
+  if !exists("s:SNR")
+    let s:SNR=matchstr(expand('<sfile>'), '<SNR>\d\+_\zegetSNR$')
+  endif
+  return s:SNR . (a:0>0 ? (a:1) : '')
+endfunction
+function! s:stop() abort
+  " Defining the menu, even with autostart==0 will always call the action
+  " associated to compil_hints.running variable. Which means, this'll trigger
+  " the call to lh#compil_hints#stop().
+  " Hence this trick. It permits to not load the autoload plugin when the menu
+  " is defined.
+  "
+  " Yet, if g:compil_hints.running is true, the correct stop() function needs
+  " to be called when stopping (for the first time).
+  echomsg "next time, let's use the correct lh#compil_hints#stop()"
+  let s:compil_hints_menu.actions[0] = function("lh#compil_hints#stop")
+endfunction
+
+let g:compil_hints.running = get(g:compil_hints, 'running',
+      \ lh#option#get('compil_hints.autostart', 0, 'g'))
 
 let s:compil_hints_menu= {
-      \ 'variable': 'compil_hints_running',
-      \ 'idx_crt_value': lh#option#get('compil_hints.autostart', 0, 'g'),
+      \ 'variable': 'compil_hints.running',
       \ 'values': [0, 1],
       \ 'texts': ['no', 'yes'],
       \ 'menu': {'priority': '50.110', 'name': 'Project.&Show compilation hints'},
-      \ 'actions': [function("lh#compil_hints#stop"), function("lh#compil_hints#start")]
+      \ 'actions': [g:compil_hints.running ? function('lh#compil_hints#stop') : function(s:getSNR('stop')),
+      \             function("lh#compil_hints#start")],
       \ }
 call lh#menu#def_toggle_item(s:compil_hints_menu)
+let g:compil_hints_menu = s:compil_hints_menu
 
 " Menus }}}1
 "------------------------------------------------------------------------
