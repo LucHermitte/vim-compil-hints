@@ -5,7 +5,7 @@
 " Version:      1.0.0
 let s:k_version = 100
 " Created:      10th Apr 2012
-" Last Update:  12th Jun 2018
+" Last Update:  14th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -71,7 +71,7 @@ let g:compil_hints.running = get(g:compil_hints, 'running', 0)
 
 let s:compil_hints_menu= {
       \ 'variable': 'compil_hints_running',
-      \ 'idx_crt_value': lh#option#get('compil_hints_autostart', 0, 'g'),
+      \ 'idx_crt_value': lh#option#get('compil_hints.autostart', 0, 'g'),
       \ 'values': [0, 1],
       \ 'texts': ['no', 'yes'],
       \ 'menu': {'priority': '50.110', 'name': 'Project.&Show compilation hints'},
