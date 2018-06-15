@@ -5,7 +5,7 @@
 " Version:      1.0.0
 let s:k_version = 100
 " Created:      10th Apr 2012
-" Last Update:  14th Jun 2018
+" Last Update:  15th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -43,9 +43,13 @@ let s:k_version = 100
 "=============================================================================
 
 " Avoid global reinclusion {{{1
-if &cp || !has('balloon_eval') || (exists("g:loaded_compil_hints")
+if &cp || (exists("g:loaded_compil_hints")
       \ && (g:loaded_compil_hints >= s:k_version)
       \ && !exists('g:force_reload_compil_hints'))
+  finish
+endif
+if  !has('balloon_eval') && !has('signs')
+  " Necessary requirements aren't fulfilled
   finish
 endif
 let g:loaded_compil_hints = s:k_version
