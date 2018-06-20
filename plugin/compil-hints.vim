@@ -2,10 +2,10 @@
 " File:         addons/lh-compil-hints/plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.0.0
-let s:k_version = 100
+" Version:      1.1.0
+let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  15th Jun 2018
+" Last Update:  20th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -25,6 +25,9 @@ let s:k_version = 100
 "             Improves greatly the removal of signs. However, this options does
 "             remove all signs in a buffer, even the one not placed by
 "             compil_hints.
+"
+" States:
+"       enabled/disabled <=> running
 "
 "------------------------------------------------------------------------
 " Installation:
@@ -62,15 +65,39 @@ command! CompilHintsUpdate call lh#compil_hints#update()
 command! CompilHintsToggle Toggle ProjectShowcompilationhints
 " Commands and Mappings }}}1
 "------------------------------------------------------------------------
-" Auto-start {{{1
 let g:compil_hints = get(g:, 'compil_hints', {})
+"------------------------------------------------------------------------
+" Auto-start {{{1
 
-if get(g:compil_hints, 'autostart', 0)
+" Centralize the access to the option
+function! s:shall_autostart()
+  " v1.1.0. Let's suppose that if the plugin is installed, we want it to
+  " automatically "highligth" errors.
+  return get(g:compil_hints, 'autostart', 1)
+endfunction
+
+if s:shall_autostart()
   call lh#compil_hints#start()
 endif
+
+" Auto-commands
+function! s:define_autocommands() abort
+  let qf_cmds = ['make', 'grep', 'vimgrep', 'cscope', 'cfile', 'cgetfile', 'helpgrep', 'cexpr', 'cgetexpr', 'cbuffer', 'cgetbuffer']
+  let qf_add_cmds = ['grepadd', 'vimgrep', 'caddfile', 'caddexpr', 'caddbuffer']
+  augroup CompilHints
+    au!
+    for cmd in qf_cmds + qf_add_cmds
+      exe "au QuickFixCmdPost ".cmd." call lh#compil_hints#update(cmd)"
+    endfor
+  augroup END
+endfunction
+
+" Always define the commands
+call s:define_autocommands()
+
 " Auto-start }}}1
 "------------------------------------------------------------------------
-" Menus {{{1
+" Menus  -- "running" state {{{1
 " s:getSNR([func_name]) {{{3
 function! s:getSNR(...)
   if !exists("s:SNR")
@@ -91,8 +118,7 @@ function! s:stop() abort
   let s:compil_hints_menu.actions[0] = function("lh#compil_hints#stop")
 endfunction
 
-let g:compil_hints.running = get(g:compil_hints, 'running',
-      \ lh#option#get('compil_hints.autostart', 0, 'g'))
+let g:compil_hints.running = get(g:compil_hints, 'running', s:shall_autostart())
 
 let s:compil_hints_menu= {
       \ 'variable': 'compil_hints.running',
@@ -103,7 +129,9 @@ let s:compil_hints_menu= {
       \             function("lh#compil_hints#start")],
       \ }
 call lh#menu#def_toggle_item(s:compil_hints_menu)
-let g:compil_hints_menu = s:compil_hints_menu
+
+" For debugging purposes...
+let g:compil_hints.__menu = s:compil_hints_menu
 
 " Menus }}}1
 "------------------------------------------------------------------------

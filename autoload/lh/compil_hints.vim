@@ -5,7 +5,7 @@
 " Version:      1.0.1
 let s:k_version = 101
 " Created:      10th Apr 2012
-" Last Update:  15th Jun 2018
+" Last Update:  20th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -82,11 +82,11 @@ function! lh#compil_hints#stop() abort
   endif
 endfunction
 
-" Function: lh#compil_hints#update() {{{2
-function! lh#compil_hints#update() abort
+" Function: lh#compil_hints#update([cmd]) {{{2
+function! lh#compil_hints#update(cmd) abort
   if ! g:compil_hints.running |  return | endif
   if s:UseSigns()
-    call s:Supdate()
+    call call('s:Supdate', a:000)
   endif
 endfunction
 
@@ -215,14 +215,28 @@ function! s:WorstType(errors) abort
   return s:k_levels[idx]
 endfunction
 
-" Function: Supdate() {{{3
+" Function: Supdate([cmd]) {{{3
 let s:first_sign_id = 27000
-function! s:Supdate() abort
+let s:qf_length     = -1
+function! s:Supdate(...) abort
   if !g:compil_hints.running | return | endif
 
-  call s:Sclear()
-
   let qflist = getqflist()
+
+  let cmd = get(a:, 1, '')
+  if cmd =~ 'add'
+    if len(qflist) < qf_length
+      " new compilation, let's clear every thing
+      call s:Sclear()
+    else
+      " We only parse what's new!
+      let qflist = qflist[qf_length+1 : ]
+    endif
+    let qf_length = len(qflist)
+  else
+    call s:Sclear()
+  endif
+
   let qflist = filter(qflist, 'v:val.bufnr>0')
   let errors = s:ReduceQFList(qflist)
 
