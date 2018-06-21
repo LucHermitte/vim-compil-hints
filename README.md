@@ -74,11 +74,11 @@ Vim
 Permits to specify which codepoints to use as sign characters depending on the
 level:
 
-- `error`   , defaults to `["\u274c", 'XX']`            -- '&#274c;', 'XX'
-- `warning'`, defaults to `["\u26a0", "\u26DB", '!!']`  -- '&#26a0;', '&#26db;', '!!'
-- `note'`   , defaults to `["\u2139", "\U1F6C8", 'ii']` -- '&#2139;', '&#1f6c8;', 'ii'
+- `error`   , defaults to `["\u274c", 'XX']`            -- '&#x274c;', 'XX'
+- `warning'`, defaults to `["\u26a0", "\u26DB", '!!']`  -- '&#x26a0;', '&#x26db;', '!!'
+- `note'`   , defaults to `["\u2139", "\U1F6C8", 'ii']` -- '&#x2139;', '&#x1f6c8;', 'ii'
 - `context'`, defaults to `['>>']`
-- `info'`   , defaults to `["\u27a9", '->']`            -- '&#27a9;', '->'
+- `info'`   , defaults to `["\u27a9", '->']`            -- '&#x27a9;', '->'
 
 This feature is used only when:
 - [`'guifont'`](http://vimhelp.appspot.com/options.txt.html#%27guifont%27) is
@@ -96,12 +96,12 @@ your [`.vimrc`](http://vimhelp.appspot.com/starting.txt.html#%2evimrc) (only!).
 " Manually
 :let g:compil_hints             = get(g:, 'compil_hints', {'signs': {}})
 :let g:compil_hints.signs       = get(g:compil_hints, 'signs', {})
-:let g:compil_hints.signs.error = ["\u274c"] " &#274c;
+:let g:compil_hints.signs.error = ["\u274c"] " ❌
 
 
 " Or, thanks to lh-vim-lib
 runtime plugin/let.vim
-:LetTo g:compil_hints.signs.error = ["\u274c"] " &#274c;
+:LetTo g:compil_hints.signs.error = ["\u274c"] " ❌
 ```
 
 
