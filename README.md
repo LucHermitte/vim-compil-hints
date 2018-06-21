@@ -8,16 +8,19 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
 [![Last release](https://img.shields.io/github/tag/LucHermitte/vim-compil-hints.svg)](https://github.com/LucHermitte/vim-compil-hints/releases) [![Project Stats](https://www.openhub.net/p/21020/widgets/project_thin_badge.gif)](https://www.openhub.net/p/21020)
 
 ## Features
- * Parses the quickfix list and present its entries as
+ * Parses the quickfix list and presents its entries as
    [_signs_](http://vimhelp.appspot.com/sign.txt.html#signs) and/or
    [_balloons_](http://vimhelp.appspot.com/debugger.txt.html#balloon%2deval) --
    when supported by Vim.
  * Multiple issues happening on a same line are merged together, the highest
    error level is kept (_error_ > _warning_ > _note_ > _context_)
- * Plugins that update the quickfix list are expected to explicitly refresh the
-   signs by calling `lh#compil_hints#update()` --
-   [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/))
-   already does that. Balloons are automatically updated.
+ * Balloons are automatically updated.
+ * Signs are automatically updated at the end of a compilation, a (vim)grep...
+   They are also automatically (and incrementally!) updated on asynchronous
+   compilation/grepping -- that use `:caddexpr`, `:grepadd`...
+
+   IOW, plugins that update the quickfix list don't need  to explicitly refresh
+   the signs by calling `lh#compil_hints#update()` anymore since version 1.1.0.
 
 ## Commands
 
@@ -67,6 +70,41 @@ remove all signs in a buffer, even the one not placed by compil-hints.
 boolean: 1/0; default: `! exists('*execute')` => false with recent versions of
 Vim
 
+#### `g:compil_hints.signs`
+Permits to specify which codepoints to use as sign characters depending on the
+level:
+
+- `error`   , defaults to `["\u274c", 'XX']`            -- '&#274c;', 'XX'
+- `warning'`, defaults to `["\u26a0", "\u26DB", '!!']`  -- '&#26a0;', '&#26db;', '!!'
+- `note'`   , defaults to `["\u2139", "\U1F6C8", 'ii']` -- '&#2139;', '&#1f6c8;', 'ii'
+- `context'`, defaults to `['>>']`
+- `info'`   , defaults to `["\u27a9", '->']`            -- '&#27a9;', '->'
+
+This feature is used only when:
+- [`'guifont'`](http://vimhelp.appspot.com/options.txt.html#%27guifont%27) is
+  available (i.e. in graphical sessions),
+- and when gvim doesn't support
+  [`+xpm`](http://vimhelp.appspot.com/various.txt.html#%2bxpm) -- Pixmal
+  support has the precedence.
+- and when the Python module `python-config` can be used.
+
+Otherwise, the last value in each list will be used. IOW, if you know that the
+font you use in your terminal always support `\u274c`, you can simply define in
+your [`.vimrc`](http://vimhelp.appspot.com/starting.txt.html#%2evimrc) (only!).
+
+```vim
+" Manually
+:let g:compil_hints             = get(g:, 'compil_hints', {'signs': {}})
+:let g:compil_hints.signs       = get(g:compil_hints, 'signs', {})
+:let g:compil_hints.signs.error = ["\u274c"] " &#274c;
+
+
+" Or, thanks to lh-vim-lib
+runtime plugin/let.vim
+:LetTo g:compil_hints.signs.error = ["\u274c"] " &#274c;
+```
+
+
 ## Requirements / Installation
 
   * Requirements: Vim 7.+,
@@ -99,14 +137,15 @@ Vim
 - When the quickfix list changes (background compilation with
   [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/)), the balloons
   stop displaying anything.
-- Test UTF-8 glyphs when icons cannot be used
-- Listen for `QuickFixCmdPost`, avoid parsing multiple times when doing
-  background compilation...
+- Ask fontconfig `fc-list`, when recent enough, which UTF-8 codepoints could be used.
+- Check the behaviour with encodings other than UTF-8.
 
 ## History
+* V 1.1.0.
+    * Automatically active the signs and ballons on quickfix related commands.
 * V 1.0.1.
     * Detect when XPM icons cannot be used.
-    * USe the first UTF-8 glyphs
+    * Use the first UTF-8 glyphs
 * V 1.0.0.
     * The XPM icons used come from Vim source code, they're under
       [Vim License](doc/uganda.txt).
