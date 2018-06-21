@@ -5,7 +5,7 @@
 " Version:      1.0.1
 let s:k_version = 101
 " Created:      10th Apr 2012
-" Last Update:  20th Jun 2018
+" Last Update:  21st Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -83,7 +83,7 @@ function! lh#compil_hints#stop() abort
 endfunction
 
 " Function: lh#compil_hints#update([cmd]) {{{2
-function! lh#compil_hints#update(cmd) abort
+function! lh#compil_hints#update(...) abort
   if ! g:compil_hints.running |  return | endif
   if s:UseSigns()
     call call('s:Supdate', a:000)
