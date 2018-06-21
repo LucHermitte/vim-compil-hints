@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  20th Jun 2018
+" Last Update:  21st Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -87,7 +87,7 @@ function! s:define_autocommands() abort
   augroup CompilHints
     au!
     for cmd in qf_cmds + qf_add_cmds
-      exe "au QuickFixCmdPost ".cmd." call lh#compil_hints#update(cmd)"
+      exe "au QuickFixCmdPost ".cmd." call lh#compil_hints#update('".cmd."')"
     endfor
   augroup END
 endfunction
