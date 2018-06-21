@@ -83,7 +83,7 @@ endif
 " Auto-commands
 function! s:define_autocommands() abort
   let qf_cmds = ['make', 'grep', 'vimgrep', 'cscope', 'cfile', 'cgetfile', 'helpgrep', 'cexpr', 'cgetexpr', 'cbuffer', 'cgetbuffer']
-  let qf_add_cmds = ['grepadd', 'vimgrep', 'caddfile', 'caddexpr', 'caddbuffer']
+  let qf_add_cmds = ['grepadd', 'vimgreadd', 'caddfile', 'caddexpr', 'caddbuffer']
   augroup CompilHints
     au!
     for cmd in qf_cmds + qf_add_cmds
