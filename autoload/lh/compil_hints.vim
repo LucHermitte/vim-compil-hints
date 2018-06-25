@@ -67,7 +67,7 @@ function! s:UseSigns()
 endfunction
 
 function! s:opt(key, default) abort
-  return lh#option#get('compil_hints.'.key, default, 'g')
+  return lh#option#get('compil_hints.'.a:key, a:default, 'g')
 endfunction
 
 "------------------------------------------------------------------------
