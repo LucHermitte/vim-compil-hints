@@ -103,14 +103,13 @@ call s:define_autocommands()
 " Auto-start }}}1
 "------------------------------------------------------------------------
 " Menus  -- "running" state {{{1
-" s:getSNR([func_name]) {{{3
-function! s:getSNR(...)
+function! s:getSNR(...) " {{{2
   if !exists("s:SNR")
     let s:SNR=matchstr(expand('<sfile>'), '<SNR>\d\+_\zegetSNR$')
   endif
   return s:SNR . (a:0>0 ? (a:1) : '')
 endfunction
-function! s:stop() abort
+function! s:stop() abort " {{{2
   " Defining the menu, even with autostart==0 will always call the action
   " associated to compil_hints.running variable. Which means, this'll trigger
   " the call to lh#compil_hints#stop().
@@ -123,8 +122,10 @@ function! s:stop() abort
   let s:compil_hints_menu.actions[0] = function("lh#compil_hints#stop")
 endfunction
 
+" Default state {{{2
 let g:compil_hints.running = get(g:compil_hints, 'running', s:shall_autostart())
 
+" And... define the menu {{{2
 " The following, will automatically start on the first run
 let s:compil_hints_menu= {
       \ 'variable': 'compil_hints.running',

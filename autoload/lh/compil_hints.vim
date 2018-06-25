@@ -242,16 +242,18 @@ function! s:Supdate(...) abort
   let cmd = get(a:, 1, '')
   if cmd =~ 'add'
     if len(qflist) < s:qf_length
+      let s:qf_length = len(qflist)
       " new compilation, let's clear every thing
       call s:Sclear()
     else
+      let s:qf_length = len(qflist)
       " We only parse what's new!
       let qflist = qflist[s:qf_length+1 : ]
     endif
   else
+    let s:qf_length = len(qflist)
     call s:Sclear()
   endif
-  let s:qf_length = len(qflist)
 
   let qflist = filter(qflist, 'v:val.bufnr>0')
   let errors = s:ReduceQFList(qflist)
