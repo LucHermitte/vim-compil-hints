@@ -146,7 +146,7 @@ runtime plugin/let.vim
 
 ## History
 * V 1.1.0.
-    * Automatically active the signs and ballons on quickfix related commands.
+    * Automatically activate the signs and ballons on quickfix related commands.
 * V 1.0.1.
     * Detect when XPM icons cannot be used.
     * Use the first UTF-8 glyphs
