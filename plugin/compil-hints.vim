@@ -1,11 +1,11 @@
 "=============================================================================
-" File:         addons/lh-compil-hints/plugin/compil-hints.vim    {{{1
+" File:         plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://github.com/LucHermitte/vim-compil-hints>
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  21st Jun 2018
+" Last Update:  25th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -76,10 +76,6 @@ function! s:shall_autostart()
   return get(g:compil_hints, 'autostart', 1)
 endfunction
 
-if s:shall_autostart()
-  call lh#compil_hints#start()
-endif
-
 " Auto-commands
 function! s:define_autocommands() abort
   let qf_cmds = ['make', 'grep', 'vimgrep', 'cscope', 'cfile', 'cgetfile', 'helpgrep', 'cexpr', 'cgetexpr', 'cbuffer', 'cgetbuffer']
@@ -89,6 +85,15 @@ function! s:define_autocommands() abort
     for cmd in qf_cmds + qf_add_cmds
       exe "au QuickFixCmdPost ".cmd." call lh#compil_hints#update('".cmd."')"
     endfor
+    if get(g:compil_hints, 'reset_on_qf_window_commands', 1)
+      " Intercepts :copen, but not cnewer, colder => don't use it
+      " au BufWinEnter * if getbufvar(eval(expand('<abuf>')), '&ft') =~ 'qf' | Toggle ProjectShowcompilationhints yes | else | echomsg "BufWinEnter" | endif
+      " Intercepts :copen, :cnewer, :colder...
+      " Make sure it's reset => no + yes
+      au FileType qf Toggle ProjectShowcompilationhints no | Toggle ProjectShowcompilationhints yes
+      " Intercepts :cclose
+      au BufWinLeave * if getbufvar(eval(expand('<abuf>')), '&ft') =~ 'qf' | Toggle ProjectShowcompilationhints no  | endif
+    endif
   augroup END
 endfunction
 
@@ -120,6 +125,7 @@ endfunction
 
 let g:compil_hints.running = get(g:compil_hints, 'running', s:shall_autostart())
 
+" The following, will automatically start on the first run
 let s:compil_hints_menu= {
       \ 'variable': 'compil_hints.running',
       \ 'values': [0, 1],

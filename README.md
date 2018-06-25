@@ -21,6 +21,9 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
 
    IOW, plugins that update the quickfix list don't need  to explicitly refresh
    the signs by calling `lh#compil_hints#update()` anymore since version 1.1.0.
+ * Closing and opening the qf-window will activate and deactivate signs and
+   balloons.
+ * Signs and balloons are updated on `cnewer` & al.
 
 ## Commands
 
@@ -139,6 +142,7 @@ runtime plugin/let.vim
   stop displaying anything.
 - Ask fontconfig `fc-list`, when recent enough, which UTF-8 codepoints could be used.
 - Check the behaviour with encodings other than UTF-8.
+- Distinguish the two states _activated_ and _hidden_
 
 ## History
 * V 1.1.0.
