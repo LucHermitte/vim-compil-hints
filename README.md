@@ -17,14 +17,17 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
  * Balloons are automatically updated.
  * Signs are automatically updated at the end of a compilation, a (vim)grep...
    They are also automatically (and incrementally!) updated on asynchronous
-   compilation/grepping -- that use `:caddexpr`, `:grepadd`...
+   compilation/grepping -- that use
+   [`:caddexpr`](http://vimhelp.appspot.com/quickfix.txt.html#%3acaddexpr),
+   [`:grepadd`](http://vimhelp.appspot.com/quickfix.txt.html#%3agrepadd)...
 
    IOW, plugins that update the quickfix list don't need  to explicitly refresh
    the signs by calling `lh#compil_hints#update()` anymore since version 1.1.0.
  * Closing and opening the qf-window will activate and deactivate signs and
    balloons.
- * Signs and balloons are updated on `cnewer` & al.
-
+ * Signs and balloons are updated on
+   [`:cnewer`](http://vimhelp.appspot.com/quickfix.txt.html#%3acnewer) & al.
+ 
 ## Commands
 
  * `:CompilHintsToggle` -- to start/stop using the plugin
@@ -56,6 +59,8 @@ Requires Vim to be compiled with
 
 #### `g:compil_hints.autostart`
 When sets, the plugin is automatically started -- boolean: 1/[0]
+
+Needs to be set in the `.vimrc`.
 
 #### `(bpg):compil_hints.context_re`
 Regular expression used to recognize and display differently messages like:
@@ -107,6 +112,20 @@ runtime plugin/let.vim
 :LetTo g:compil_hints.signs.error = ["\u274c"] " ❌
 ```
 
+Needs to be set in the `.vimrc`.
+
+#### `g:compil_hints.hl`
+Permits to specify which
+[highlight](http://vimhelp.appspot.com/syntax.txt.html#%3ahighlight) group to
+use depending on the level:
+
+- `error`   , defaults to `error`
+- `warning'`, defaults to `todo`
+- `note'`   , defaults to `comment`
+- `context'`, defaults to `constant`
+- `info'`   , defaults to `todo`
+
+Needs to be set in the `.vimrc`.
 
 ## Requirements / Installation
 
@@ -147,6 +166,7 @@ runtime plugin/let.vim
 ## History
 * V 1.1.0.
     * Automatically activate the signs and ballons on quickfix related commands.
+    * Improve style options
 * V 1.0.1.
     * Detect when XPM icons cannot be used.
     * Use the first UTF-8 glyphs

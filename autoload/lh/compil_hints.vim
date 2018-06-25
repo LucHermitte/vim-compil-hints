@@ -2,19 +2,28 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.0.1
-let s:k_version = 101
+" Version:      1.1.0
+let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  21st Jun 2018
+" Last Update:  25th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
 "
-" After a program has been compiled, execute lh#compil_hints#update() to update
-" the signs and the balloons that highlight the compilation errors and warnings.
+" The plugin shall work out the box.
+" - commands that update the qflist will trigger an (incremental) update
+"   of the signs -- and activate balloons
+" - :copen, :cnewer, :colder... will trigger a complete update of the
+"   signs to display
+" - :cclose will hide all the signs and disable balloons
+" - balloons always use the current qflist
 "
 " - track the changes and update only the related signs
 "
+"
+" TODO:
+" - check if this is enough for plugins that do asynchronous compilation
+" - support loclist?
 " }}}1
 "=============================================================================
 
@@ -57,11 +66,16 @@ function! s:UseSigns()
   return has('signs')        && get(g:compil_hints, 'use_signs', 1)
 endfunction
 
+function! s:opt(key, default) abort
+  return lh#option#get('compil_hints.'.key, default, 'g')
+endfunction
+
 "------------------------------------------------------------------------
 " ## Exported functions {{{1
 
 " Function: lh#compil_hints#start() {{{2
 function! lh#compil_hints#start() abort
+  call s:Verbose("start")
   let g:compil_hints.running = 1
   if s:UseBalloons()
     call s:Bstart()
@@ -73,6 +87,7 @@ endfunction
 
 " Function: lh#compil_hints#stop() {{{2
 function! lh#compil_hints#stop() abort
+  call s:Verbose("stop")
   let g:compil_hints.running = 0
   if has('balloon_eval')
     call s:Bstop()
@@ -85,6 +100,7 @@ endfunction
 " Function: lh#compil_hints#update([cmd]) {{{2
 function! lh#compil_hints#update(...) abort
   if ! g:compil_hints.running |  return | endif
+  call s:Verbose("update(%1)", a:000)
   if s:UseSigns()
     call call('s:Supdate', a:000)
   endif
@@ -117,11 +133,11 @@ function! s:Init() abort
     let icons.Here    = s:pixmaps_dir.'tb_jump.xpm'
   else
     " TODO: What if &enc isn't UTF-8 ?
-    let s_error   = lh#option#get('compil_hints.signs.error',   ["\u274c", 'XX']           , 'g')
-    let s_warning = lh#option#get('compil_hints.signs.warning', ["\u26a0", "\u26DB", '!!'] , 'g')
-    let s_note    = lh#option#get('compil_hints.signs.note',    ["\u2139", "\U1F6C8", 'ii'], 'g')
-    let s_context = lh#option#get('compil_hints.signs.context', ['>>']                     , 'g')
-    let s_info    = lh#option#get('compil_hints.signs.info',    ["\u27a9", '->']           , 'g')
+    let s_error   = s:opt('signs.error',   ["\u274c", 'XX']           , 'g')
+    let s_warning = s:opt('signs.warning', ["\u26a0", "\u26DB", '!!'] , 'g')
+    let s_note    = s:opt('signs.note',    ["\u2139", "\U1F6C8", 'ii'], 'g')
+    let s_context = s:opt('signs.context', ['>>']                     , 'g')
+    let s_info    = s:opt('signs.info',    ["\u27a9", '->']           , 'g')
 
     let [error, warning, note, ctx, here] = lh#encoding#find_best_glyph(
           \ 'compil-hints',
@@ -131,11 +147,11 @@ function! s:Init() abort
 
   " - do define the signs
   let signs = []
-  let signs += [{'kind': 'Error',   'text': error,   'hl': 'error'   }]
-  let signs += [{'kind': 'Warning', 'text': warning, 'hl': 'todo'    }]
-  let signs += [{'kind': 'Note',    'text': note ,   'hl': 'comment' }]
-  let signs += [{'kind': 'Context', 'text': ctx  ,   'hl': 'constant'}]
-  let signs += [{'kind': 'Here',    'text': here ,   'hl': 'todo'    }]
+  let signs += [{'kind': 'Error',   'text': error,   'hl': s:opt('hl.error',   'error'   )}]
+  let signs += [{'kind': 'Warning', 'text': warning, 'hl': s:opt('hl.warning', 'todo'    )}]
+  let signs += [{'kind': 'Note',    'text': note ,   'hl': s:opt('hl.note',    'comment' )}]
+  let signs += [{'kind': 'Context', 'text': ctx  ,   'hl': s:opt('hl.context', 'constant')}]
+  let signs += [{'kind': 'Here',    'text': here ,   'hl': s:opt('hl.info',    'todo'    )}]
   for s in signs
     let cmd  = 'sign define CompilHints'.( s.kind ).' text='.( s.text ).' texthl='.( s.hl )
     if exists('l:icons')

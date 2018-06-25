@@ -72,7 +72,7 @@ let g:compil_hints = get(g:, 'compil_hints', {})
 " Centralize the access to the option
 function! s:shall_autostart()
   " v1.1.0. Let's suppose that if the plugin is installed, we want it to
-  " automatically "highligth" errors.
+  " automatically "highlight" errors.
   return get(g:compil_hints, 'autostart', 1)
 endfunction
 
