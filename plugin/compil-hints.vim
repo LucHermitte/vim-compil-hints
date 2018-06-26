@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  25th Jun 2018
+" Last Update:  26th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -27,7 +27,7 @@ let s:k_version = 110
 "             compil_hints.
 "
 " States:
-"       enabled/disabled <=> running
+"       enabled/disabled <=> activated
 "
 "------------------------------------------------------------------------
 " Installation:
@@ -88,13 +88,26 @@ function! s:define_autocommands() abort
     if get(g:compil_hints, 'reset_on_qf_window_commands', 1)
       " Intercepts :copen, but not cnewer, colder => don't use it
       " au BufWinEnter * if getbufvar(eval(expand('<abuf>')), '&ft') =~ 'qf' | Toggle ProjectShowcompilationhints yes | else | echomsg "BufWinEnter" | endif
-      " Intercepts :copen, :cnewer, :colder...
-      " Make sure it's reset => no + yes
-      au FileType qf Toggle ProjectShowcompilationhints no | Toggle ProjectShowcompilationhints yes
+      " Intercepts :copen, :cnewer, :colder..., and even setqflist()!
+      au FileType qf call lh#compil_hints#start()
       " Intercepts :cclose
-      au BufWinLeave * if getbufvar(eval(expand('<abuf>')), '&ft') =~ 'qf' | Toggle ProjectShowcompilationhints no  | endif
+      au BufWinLeave * if getbufvar(eval(expand('<abuf>')), '&ft') =~ 'qf' | call lh#compil_hints#stop() | endif
     endif
   augroup END
+endfunction
+
+function! s:activate() abort
+  call s:define_autocommands()
+  if lh#qf#is_displayed()
+    call lh#compil_hints#start()
+  endif
+endfunction
+
+function! s:deactivate() abort
+  aug CompilHints
+    au!
+  aug END
+  call lh#compil_hints#stop()
 endfunction
 
 " Always define the commands
@@ -102,38 +115,42 @@ call s:define_autocommands()
 
 " Auto-start }}}1
 "------------------------------------------------------------------------
-" Menus  -- "running" state {{{1
+" Menus  -- "activated" state {{{1
 function! s:getSNR(...) " {{{2
   if !exists("s:SNR")
     let s:SNR=matchstr(expand('<sfile>'), '<SNR>\d\+_\zegetSNR$')
   endif
   return s:SNR . (a:0>0 ? (a:1) : '')
 endfunction
+function! s:function(...) abort
+  return function(call('s:getSNR', a:000))
+endfunction
+
 function! s:stop() abort " {{{2
   " Defining the menu, even with autostart==0 will always call the action
-  " associated to compil_hints.running variable. Which means, this'll trigger
+  " associated to compil_hints.activated variable. Which means, this'll trigger
   " the call to lh#compil_hints#stop().
   " Hence this trick. It permits to not load the autoload plugin when the menu
   " is defined.
   "
-  " Yet, if g:compil_hints.running is true, the correct stop() function needs
+  " Yet, if g:compil_hints.activated is true, the correct stop() function needs
   " to be called when stopping (for the first time).
   " echomsg "next time, let's use the correct lh#compil_hints#stop()"
-  let s:compil_hints_menu.actions[0] = function("lh#compil_hints#stop")
+  let s:compil_hints_menu.actions[0] = s:function("deactivate")
 endfunction
 
 " Default state {{{2
-let g:compil_hints.running = get(g:compil_hints, 'running', s:shall_autostart())
+let g:compil_hints.activated = get(g:compil_hints, 'activated', s:shall_autostart())
 
 " And... define the menu {{{2
 " The following, will automatically start on the first run
 let s:compil_hints_menu= {
-      \ 'variable': 'compil_hints.running',
+      \ 'variable': 'compil_hints.activated',
       \ 'values': [0, 1],
       \ 'texts': ['no', 'yes'],
       \ 'menu': {'priority': '50.110', 'name': 'Project.&Show compilation hints'},
-      \ 'actions': [g:compil_hints.running ? function('lh#compil_hints#stop') : function(s:getSNR('stop')),
-      \             function("lh#compil_hints#start")],
+      \ 'actions': [g:compil_hints.activated ? s:function('deactivate') : s:function('stop'),
+      \             s:function('activate')],
       \ }
 call lh#menu#def_toggle_item(s:compil_hints_menu)
 

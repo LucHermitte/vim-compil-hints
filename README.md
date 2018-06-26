@@ -183,5 +183,10 @@ Needs to be set in the `.vimrc`.
     the result of the compilation.
 
 ## Notes
-NB: it doesn't copy qflist() but always fetch the last version in order to
+* It doesn't copy qflist() but always fetch the last version in order to
 automagically rely on vim to update the line numbers.
+
+* End-user can decide to globally use or disable the plugin, through the menu
+  or the `auto_start` option.
+* When enabled, signs and balloons will be displayed only when the quickfix
+  window is opened.

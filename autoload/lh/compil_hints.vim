@@ -75,8 +75,9 @@ endfunction
 
 " Function: lh#compil_hints#start() {{{2
 function! lh#compil_hints#start() abort
+  call lh#assert#true(g:compil_hints.activated)
   call s:Verbose("start")
-  let g:compil_hints.running = 1
+  let g:compil_hints.displayed = 1
   if s:UseBalloons()
     call s:Bstart()
   endif
@@ -88,7 +89,7 @@ endfunction
 " Function: lh#compil_hints#stop() {{{2
 function! lh#compil_hints#stop() abort
   call s:Verbose("stop")
-  let g:compil_hints.running = 0
+  let g:compil_hints.displayed = 0
   if has('balloon_eval')
     call s:Bstop()
   endif
@@ -99,15 +100,20 @@ endfunction
 
 " Function: lh#compil_hints#update([cmd]) {{{2
 function! lh#compil_hints#update(...) abort
-  if ! g:compil_hints.running |  return | endif
+  call lh#assert#true(g:compil_hints.activated)
   if get(a:, 1, '') =~ 'grep'
     let s:qf_balloon = lh#qf#get_title()
   else
     let s:qf_balloon = ''
   endif
-  call s:Verbose("update(%1)", a:000)
-  if s:UseSigns()
-    call call('s:Supdate', a:000)
+  if ! get(g:compil_hints, 'displayed', 0)
+    call lh#compil_hints#start()
+    return
+  else
+    call s:Verbose("update(%1)", a:000)
+    if s:UseSigns()
+      call call('s:Supdate', a:000)
+    endif
   endif
 endfunction
 
@@ -170,7 +176,7 @@ endfunction
 " # Signs {{{2
 " Function: Sstart() {{{3
 function! s:Sstart() abort
-  call lh#compil_hints#update()
+  call s:Supdate('start')
 endfunction
 
 " Function: Sstop() {{{3
@@ -240,7 +246,8 @@ endfunction
 let s:first_sign_id = 27000
 let s:qf_length     = -1
 function! s:Supdate(...) abort
-  if !g:compil_hints.running | return | endif
+  call lh#assert#true(g:compil_hints.activated)
+  " if !g:compil_hints.displayed | return | endif
 
   let qflist = getqflist()
 
