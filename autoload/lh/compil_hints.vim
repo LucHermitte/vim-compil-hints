@@ -144,11 +144,11 @@ function! s:Init() abort
     let icons.Here    = s:pixmaps_dir.'tb_jump.xpm'
   else
     " TODO: What if &enc isn't UTF-8 ?
-    let s_error   = s:opt('signs.error',   ["\u274c", 'XX']           , 'g')
-    let s_warning = s:opt('signs.warning', ["\u26a0", "\u26DB", '!!'] , 'g')
-    let s_note    = s:opt('signs.note',    ["\u2139", "\U1F6C8", 'ii'], 'g')
-    let s_context = s:opt('signs.context', ['>>']                     , 'g')
-    let s_info    = s:opt('signs.info',    ["\u27a9", '->']           , 'g')
+    let s_error   = s:opt('signs.error',   ["\u274c", 'XX']           )
+    let s_warning = s:opt('signs.warning', ["\u26a0", "\u26DB", '!!'] )
+    let s_note    = s:opt('signs.note',    ["\u2139", "\U1F6C8", 'ii'])
+    let s_context = s:opt('signs.context', ['>>']                     )
+    let s_info    = s:opt('signs.info',    ["\u27a9", '->']           )
 
     let [error, warning, note, ctx, here] = lh#encoding#find_best_glyph(
           \ 'compil-hints',
