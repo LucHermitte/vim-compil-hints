@@ -102,9 +102,8 @@ endfunction
 function! lh#compil_hints#update(...) abort
   call lh#assert#true(g:compil_hints.activated)
   if get(a:, 1, '') =~ 'grep'
-    let s:qf_balloon = lh#qf#get_title()
-  else
-    let s:qf_balloon = ''
+    " TODO: avoid to do it after each :grepadd
+    call s:qf_context.set('balloon', lh#qf#get_title())
   endif
   if ! get(g:compil_hints, 'displayed', 0)
     call lh#compil_hints#start()
@@ -121,6 +120,7 @@ endfunction
 " ## Internal functions {{{1
 " Function: s:Init() {{{2
 let s:pixmaps_dir = expand('<sfile>:p:h:h:h').'/pixmaps/'
+let s:qf_context = lh#qf#make_context_map(0)
 
 function! s:Init() abort
   " Initialize internal variables for Signs
@@ -308,9 +308,11 @@ endfunction
 
 " Function: lh#compil_hints#ballon_expr() {{{3
 function! lh#compil_hints#ballon_expr() abort
-  if !empty(s:qf_balloon)
-    return s:qf_balloon
-  endif
+  " Question: what'll be the id after cnewer/colder?
+  "     <<If "nr" is not present then the current quickfix list is used.>>
+  " -> looks like it'll be OK!
+  let ctx = s:qf_context.get('balloon')
+
   " Every time a file is updated, the dictionary returned by getqflist() is
   " updated regarding line numbers. As such, We cannot cache anything.
   " At best, we merge different lines.
@@ -318,6 +320,9 @@ function! lh#compil_hints#ballon_expr() abort
   " do we need to cache the info obtained ?
   let qflist = getqflist()
   let crt_qf = filter(qflist, 'v:val.bufnr == '.v:beval_bufnr.' && v:val.lnum == '.v:beval_lnum)
+  if !empty(ctx) && !empty(crt_qf)
+    return ctx
+  endif
   let crt_text = join(lh#list#unique_sort2(map(copy(crt_qf), 'v:val.text')), "\n")
   return crt_text
 endfunction
