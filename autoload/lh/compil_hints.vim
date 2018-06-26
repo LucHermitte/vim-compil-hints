@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  25th Jun 2018
+" Last Update:  26th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -100,6 +100,11 @@ endfunction
 " Function: lh#compil_hints#update([cmd]) {{{2
 function! lh#compil_hints#update(...) abort
   if ! g:compil_hints.running |  return | endif
+  if get(a:, 1, '') =~ 'grep'
+    let s:qf_balloon = lh#qf#get_title()
+  else
+    let s:qf_balloon = ''
+  endif
   call s:Verbose("update(%1)", a:000)
   if s:UseSigns()
     call call('s:Supdate', a:000)
@@ -296,6 +301,9 @@ endfunction
 
 " Function: lh#compil_hints#ballon_expr() {{{3
 function! lh#compil_hints#ballon_expr() abort
+  if !empty(s:qf_balloon)
+    return s:qf_balloon
+  endif
   " Every time a file is updated, the dictionary returned by getqflist() is
   " updated regarding line numbers. As such, We cannot cache anything.
   " At best, we merge different lines.

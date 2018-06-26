@@ -159,9 +159,12 @@ Needs to be set in the `.vimrc`.
 - When the quickfix list changes (background compilation with
   [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/)), the balloons
   stop displaying anything.
+  -> should be fixed
 - Ask fontconfig `fc-list`, when recent enough, which UTF-8 codepoints could be used.
 - Check the behaviour with encodings other than UTF-8.
-- Distinguish the two states _activated_ and _hidden_
+- Check: avoid to parse the qflist twice (it could be the case if  for instance
+  `:cmake` triggers two events: `QuickFixCmdPost` + `WinNew`)
+- WIP: Permit to inject a different text to display in balloons (in grepping cases)
 
 ## History
 * V 1.1.0.
