@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  26th Jun 2018
+" Last Update:  27th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -201,8 +201,9 @@ function! s:Sclear() abort
       silent! exe 'sign unplace '.(s)
     endfor
   endif
-  let s:signs        = []
-  let s:signs_buffers= {}
+  let s:signs         = []
+  let s:signs_buffers = {}
+  let s:first_sign_id = s:k_first_sign_id
 endfunction
 
 " Function: s:ReduceQFList() {{{3
@@ -243,8 +244,10 @@ function! s:WorstType(errors) abort
 endfunction
 
 " Function: Supdate([cmd]) {{{3
-let s:first_sign_id = 27000
-let s:qf_length     = -1
+let s:k_first_sign_id = 27000  " Initial value
+" todo: use int max
+let s:qf_length       = 10000000000000
+let s:inc_signs = {}
 function! s:Supdate(...) abort
   call lh#assert#true(g:compil_hints.activated)
   " if !g:compil_hints.displayed | return | endif
@@ -256,11 +259,15 @@ function! s:Supdate(...) abort
     if len(qflist) < s:qf_length
       let s:qf_length = len(qflist)
       " new compilation, let's clear every thing
+      call s:Verbose("Clearing signs")
+      let s:inc_signs = {}
       call s:Sclear()
     else
-      let s:qf_length = len(qflist)
+      let new_qf_length = len(qflist)
       " We only parse what's new!
-      let qflist = qflist[s:qf_length+1 : ]
+      let qflist = qflist[s:qf_length : ]
+      call s:Verbose("Keep %1 elements: %2 - %3", len(qflist), new_qf_length, s:qf_length)
+      let s:qf_length = new_qf_length
     endif
   else
     let s:qf_length = len(qflist)
@@ -272,24 +279,53 @@ function! s:Supdate(...) abort
 
   let s:signs_buffers = {}
 
-  " let g:whats = []
-  let nb = s:first_sign_id
-  for [bufnr, file_with_errors] in items(errors)
-    if !empty(file_with_errors)
-      for [lnum, what] in items(file_with_errors)
-        " let g:whats += [what]
-        let type = s:WorstType(what)
-        let cmd = 'silent! sign place '.nb
-              \ .' line='.lnum
-              \ .' name=CompilHints'.type
-              \ .' buffer='.bufnr
-        exe cmd
-        let nb += 1
-      endfor
-      call extend(s:signs_buffers, { bufnr : 1})
-    endif
-  endfor
-  let s:signs=range(s:first_sign_id, nb-1)
+  " When triggered from `grepadd`, `cexpradd`..., we will likelly only
+  " have one new sign.
+  " In that case,
+  " - "what" needs to accumulate data from several signs, it may also
+  "   need to be updated (arg!!).
+  " - "id" numbers shall not restart from scratch either.
+  " Otherwise, we'll register a lot of signs simultaneously
+  let cmds = []
+  if cmd =~ 'add'
+    for [bufnr, file_with_errors] in items(errors)
+      if !empty(file_with_errors)
+        for [lnum, what] in items(file_with_errors)
+          " Test whether there is already a sign in the same place
+          let sign_info = lh#dict#get_ensure(s:inc_signs, [bufnr, lnum], {} )
+          if has_key(sign_info, 'id')
+            call extend(sign_info.what, what)
+            let cmds += ['silent! sign unplace '.(sign_info.id)]
+          else
+            call extend(sign_info, {'id': s:first_sign_id, 'what': what})
+            let s:first_sign_id += 1
+          endif
+          let cmds += ['silent! sign place '.(sign_info.id)
+                \ .' line='.lnum
+                \ .' name=CompilHints'.s:WorstType(sign_info.what)
+                \ .' buffer='.bufnr]
+        endfor
+
+        call extend(s:signs_buffers, { bufnr : 1})
+      endif
+    endfor
+  else
+    for [bufnr, file_with_errors] in items(errors)
+      if !empty(file_with_errors)
+        " => Use map() in that case!
+        for [lnum, what] in items(file_with_errors)
+          let cmds += ['silent! sign place '.s:first_sign_id
+                \ .' line='.lnum
+                \ .' name=CompilHints'.s:WorstType(what)
+                \ .' buffer='.bufnr]
+          let s:first_sign_id += 1
+        endfor
+        call extend(s:signs_buffers, { bufnr : 1})
+      endif
+    endfor
+  endif
+  exe join(cmds, "\n")
+  let s:signs=range(s:k_first_sign_id, s:first_sign_id)
 endfunction
 
 " # Ballons {{{2
