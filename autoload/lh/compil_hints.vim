@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  27th Jun 2018
+" Last Update:  28th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -292,7 +292,7 @@ function! s:Supdate(...) abort
       if !empty(file_with_errors)
         for [lnum, what] in items(file_with_errors)
           " Test whether there is already a sign in the same place
-          let sign_info = lh#dict#get_ensure(s:inc_signs, [bufnr, lnum], {} )
+          let sign_info = lh#dict#need_ref_on(s:inc_signs, [bufnr, lnum], {} )
           if has_key(sign_info, 'id')
             call extend(sign_info.what, what)
             let cmds += ['silent! sign unplace '.(sign_info.id)]
