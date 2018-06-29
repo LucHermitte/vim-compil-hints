@@ -1,7 +1,7 @@
 compil-hints
 ============
 
-Add _ballons_ and _signs_ to show where compilation errors have occured.
+Add _ballons_ and _signs_ to show where compilation errors have occurred.
 The information is extracted from the [quickfix list](http://vimhelp.appspot.com/eval.txt.html#getqflist%28%29).
 
 
@@ -13,7 +13,8 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
    [_balloons_](http://vimhelp.appspot.com/debugger.txt.html#balloon%2deval) --
    when supported by Vim.
  * Multiple issues happening on a same line are merged together, the highest
-   error level is kept (_error_ > _warning_ > _note_ > _context_)
+   error level is kept (_error_ > _warning_ > _note_ > _context_), even when
+   compilation/grep is asynchronous.
  * Balloons are automatically updated.
  * Signs are automatically updated at the end of a compilation, a (vim)grep...
    They are also automatically (and incrementally!) updated on asynchronous
@@ -24,14 +25,26 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
    IOW, plugins that update the quickfix list don't need  to explicitly refresh
    the signs by calling `lh#compil_hints#update()` anymore since version 1.1.0.
  * Closing and opening the qf-window will activate and deactivate signs and
-   balloons.
+   balloons. IOW, when enabled, signs and balloons will be displayed only when
+   the quickfix window is opened.
+ * End-user can decide to globally use or disable the plugin, through the menu
+   or the `auto_start` option.
+
  * Signs and balloons are updated on
    [`:cnewer`](http://vimhelp.appspot.com/quickfix.txt.html#%3acnewer) & al.
- 
-## Commands
 
+## Commands
+Provides:
  * `:CompilHintsToggle` -- to start/stop using the plugin
- * `:CompilHintsUpdate` -- to update the signs to display
+ * `:CompilHintsUpdate` -- to update the signs to display; should not be
+   required anymore
+
+Listens/reacts on:
+ * `:make`:, `:grep`:, `:vimgrep`:, `:cscope`:, `:cfile`:, `:cgetfile`:, `:helpgrep`:, `:cexpr`:, `:cgetexpr`:, `:cbuffer`:, `:cgetbuffer`
+ * `:grepadd`:, `:vimgreadd`:, `:caddfile`:, `:caddexpr`:, `:caddbuffer`
+ * `:copen`:, `:cclose`:, `:quit`, and anything that makes a qf window appears
+ * `:cnewer`:, `:colder`
+ * `:call setqflist()`
 
 ## Demo
 
@@ -92,7 +105,7 @@ This feature is used only when:
 - [`'guifont'`](http://vimhelp.appspot.com/options.txt.html#%27guifont%27) is
   available (i.e. in graphical sessions),
 - and when gvim doesn't support
-  [`+xpm`](http://vimhelp.appspot.com/various.txt.html#%2bxpm) -- Pixmal
+  [`+xpm`](http://vimhelp.appspot.com/various.txt.html#%2bxpm) -- Pixmap
   support has the precedence.
 - and when the Python module `python-config` can be used.
 
@@ -108,6 +121,9 @@ your [`.vimrc`](http://vimhelp.appspot.com/starting.txt.html#%2evimrc) (only!).
 
 
 " Or, thanks to lh-vim-lib
+call lh#dict#let(g:, 'compil_hints.signs.error', ["\u274c"]) " ❌
+
+" Or, still thanks to lh-vim-lib
 runtime plugin/let.vim
 :LetTo g:compil_hints.signs.error = ["\u274c"] " ❌
 ```
@@ -119,11 +135,11 @@ Permits to specify which
 [highlight](http://vimhelp.appspot.com/syntax.txt.html#%3ahighlight) group to
 use depending on the level:
 
-- `error`   , defaults to `error`
-- `warning'`, defaults to `todo`
-- `note'`   , defaults to `comment`
-- `context'`, defaults to `constant`
-- `info'`   , defaults to `todo`
+- `error`   , defaults to `"error"`
+- `warning'`, defaults to `"todo"`
+- `note'`   , defaults to `"comment"`
+- `context'`, defaults to `"constant"`
+- `info'`   , defaults to `"todo"`
 
 Needs to be set in the `.vimrc`.
 
@@ -156,20 +172,28 @@ Needs to be set in the `.vimrc`.
 
 ## TO DO
 - Handle local options for balloon use: use/restore `b:bexpr`
-- When the quickfix list changes (background compilation with
-  [BuildToolsWrapper](https://github.com/LucHermitte/vim-build-tools-wrapper/)), the balloons
-  stop displaying anything.
-  -> should be fixed
-- Ask fontconfig `fc-list`, when recent enough, which UTF-8 codepoints could be used.
+- Ask fontconfig `fc-list`, when recent enough, which UTF-8 codepoints could be used -> lh-vim-lib
 - Check the behaviour with encodings other than UTF-8.
-- Check: avoid to parse the qflist twice (it could be the case if  for instance
-  `:cmake` triggers two events: `QuickFixCmdPost` + `WinNew`)
 - WIP: Permit to inject a different text to display in balloons (in grepping cases)
+- Add a real option to inject `linehl` to signs
+- Clean cached contexts from qf list no longer available with `c:older`
+
+## Notes and other implementation details
+* It doesn't copy `getqflist()` for balloon, but always fetch the last version
+  in order to automagically rely on vim to update the line numbers.
+
 
 ## History
 * V 1.1.0.
-    * Automatically activate the signs and ballons on quickfix related commands.
+    * Automatically activate the signs and balloons on quickfix related
+      commands, whether the compilation is synchronous or asynchronous.
     * Improve style options
+    * Distinguish _enabled_ and _activated_ states
+    * Improve performances depending on whether the qf list is filled
+      asynchronously or not
+    * Balloons are filled differently quickfix list contain `grep` result
+    * Keep track of context when navigating through qf history with `:cnewer` &
+      all, with versions of vim recent enough (> v 7.4-2200)
 * V 1.0.1.
     * Detect when XPM icons cannot be used.
     * Use the first UTF-8 glyphs
@@ -181,12 +205,3 @@ Needs to be set in the `.vimrc`.
 * V 0.2.x.
     * This plugin is strongly inspired by syntastic, but it restricts its work to
     the result of the compilation.
-
-## Notes
-* It doesn't copy qflist() but always fetch the last version in order to
-automagically rely on vim to update the line numbers.
-
-* End-user can decide to globally use or disable the plugin, through the menu
-  or the `auto_start` option.
-* When enabled, signs and balloons will be displayed only when the quickfix
-  window is opened.
