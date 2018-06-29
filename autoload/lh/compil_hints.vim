@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  28th Jun 2018
+" Last Update:  29th Jun 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -247,7 +247,7 @@ endfunction
 let s:k_first_sign_id = 27000  " Initial value
 " todo: use int max
 let s:qf_length       = 10000000000000
-let s:inc_signs = {}
+let s:aync_signs = {}
 function! s:Supdate(...) abort
   call lh#assert#true(g:compil_hints.activated)
   " if !g:compil_hints.displayed | return | endif
@@ -256,22 +256,28 @@ function! s:Supdate(...) abort
 
   let cmd = get(a:, 1, '')
   if cmd =~ 'add'
-    if len(qflist) < s:qf_length
+    if len(qflist) == 0
       let s:qf_length = len(qflist)
-      " new compilation, let's clear every thing
-      call s:Verbose("Clearing signs")
-      let s:inc_signs = {}
+      " When compiling asynchronously, the length is usually 1. A new
+      " compilation will also have a length of 1.
+      " => We'd need to compare the quickdix-ID, except this is not available
+      " before v 7.4.2200, and a correct async job starts at v7.4-1980...  new
+      " compilation, let's clear every thing
       call s:Sclear()
+      let s:aync_signs = {}
     else
       let new_qf_length = len(qflist)
       " We only parse what's new!
       let qflist = qflist[s:qf_length : ]
-      call s:Verbose("Keep %1 elements: %2 - %3", len(qflist), new_qf_length, s:qf_length)
+      " call s:Verbose("Keep %1 elements: %2 - %3", len(qflist), new_qf_length, s:qf_length)
       let s:qf_length = new_qf_length
     endif
   else
+    " This may also match a situation where the qf list is reset to nothing
+    " before an asynchronous filling => let's clear everything
     let s:qf_length = len(qflist)
     call s:Sclear()
+    let s:aync_signs = {}
   endif
 
   let qflist = filter(qflist, 'v:val.bufnr>0')
@@ -292,7 +298,7 @@ function! s:Supdate(...) abort
       if !empty(file_with_errors)
         for [lnum, what] in items(file_with_errors)
           " Test whether there is already a sign in the same place
-          let sign_info = lh#dict#need_ref_on(s:inc_signs, [bufnr, lnum], {} )
+          let sign_info = lh#dict#need_ref_on(s:aync_signs, [bufnr, lnum], {} )
           if has_key(sign_info, 'id')
             call extend(sign_info.what, what)
             let cmds += ['silent! sign unplace '.(sign_info.id)]
