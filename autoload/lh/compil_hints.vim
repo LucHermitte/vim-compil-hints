@@ -31,12 +31,12 @@ let s:cpo_save=&cpo
 set cpo&vim
 "------------------------------------------------------------------------
 " ## Misc Functions     {{{1
-" # Version {{{2
+" # Version       {{{2
 function! lh#compil_hints#version()
   return s:k_version
 endfunction
 
-" # Debug   {{{2
+" # Debug         {{{2
 let s:verbose = get(s:, 'verbose', 0)
 function! lh#compil_hints#verbose(...)
   if a:0 > 0 | let s:verbose = a:1 | endif
@@ -57,7 +57,7 @@ function! lh#compil_hints#debug(expr) abort
   return eval(a:expr)
 endfunction
 
-" # Options {{{2
+" # Options       {{{2
 function! s:UseBalloons()
   return has('balloon_eval') && get(g:compil_hints, 'use_balloons', 1)
 endfunction
@@ -69,6 +69,17 @@ endfunction
 function! s:opt(key, default) abort
   return lh#option#get('compil_hints.'.a:key, a:default, 'g')
 endfunction
+
+" # Miscelleanous {{{2
+if exists('*execute')
+  let s:execute = function('execute')
+else
+  function! s:execute(list) abort
+    for c in a:list
+      exe c
+    endfor
+  endfunction
+endif
 
 "------------------------------------------------------------------------
 " ## Exported functions {{{1
@@ -208,30 +219,33 @@ endfunction
 
 " Function: s:ReduceQFList() {{{3
 " Merges QF list inputs to have one entry per file+line_number
+function! s:qf_type(qf, context_re) abort
+  let type =
+        \   (a:qf.type ==? 'w' || a:qf.text =~? '^\swarning:') ? 'Warning'
+        \ : (a:qf.text =~? '^\s*note:')                        ? 'Note'
+        \ : (a:qf.text =~? a:context_re)                       ? 'Context'
+        \ : (a:qf.type ==? 'e' || a:qf.text =~? '^\serror:')   ? 'Error'
+        \ :                                                      'Here'
+  return type
+endfunction
+
 function! s:ReduceQFList(qflist) abort
   " note: "instantiated from" may be specific to C&C++ compilers like GCC. An
   " option may be required to extend the CompilHintsContext highlighting to
   " other filetypes/compilers.
   let context_re = lh#option#get('compil_hints.context_re', '^\s*instantiated from\|within this context\|required from here')
   let errors  = {}
-  for qf in a:qflist
-    let type =
-          \   (qf.type ==? 'w' || qf.text =~? '^\swarning:')             ? 'Warning'
-          \ : (qf.text =~? '^\s*note:')                                  ? 'Note'
-          \ : (qf.text =~? context_re)                                   ? 'Context'
-          \ : (qf.type ==? 'e' || qf.text =~? '^\serror:')               ? 'Error'
-          \ :                                                              'Here'
-    if !has_key(errors, qf.bufnr)
-      let errors[qf.bufnr] = {}
-    endif
-    let lnum = get(qf,'lnum',-1)
-    if !has_key(errors[qf.bufnr], lnum)
-      let errors[qf.bufnr][lnum] = {}
-    endif
 
-    " TODO: too much info is cached
-    call extend(errors[qf.bufnr][lnum], {get(qf, 'text') : type} )
-  endfor
+  call map(a:qflist, 'extend(lh#dict#need_ref_on(errors, [v:val.bufnr, get(v:val,"lnum",-1)], {}), {get(v:val, "text") : s:qf_type(v:val, context_re)})')
+
+  "for qf in a:qflist
+  "  let type = s:qf_type(qf, context_re)
+  "  let lnum = get(qf,"lnum",-1)
+  "  let entry = lh#dict#need_ref_on(errors, [qf.bufnr, lnum], {})
+
+  "  " TODO: too much info is cached
+  "  call extend(entry, {get(qf, "text") : type} )
+  "endfor
   return errors
 endfunction
 
@@ -300,16 +314,28 @@ function! s:Supdate(...) abort
           " Test whether there is already a sign in the same place
           let sign_info = lh#dict#need_ref_on(s:aync_signs, [bufnr, lnum], {} )
           if has_key(sign_info, 'id')
-            call extend(sign_info.what, what)
-            let cmds += ['silent! sign unplace '.(sign_info.id)]
+            let old_lvl = s:WorstType(sign_info.what)
+            call extend(what, sign_info.what)
+            let new_lvl = s:WorstType(what)
+            if new_lvl != old_lvl
+              let sign_info.what = what
+              let cmds += ['silent! sign unplace '.(sign_info.id)]
+              let cmds += ['silent! sign place '.(sign_info.id)
+                    \ .' line='.lnum
+                    \ .' name=CompilHints'.new_lvl
+                    \ .' buffer='.bufnr]
+              " Else: if the level doesn't change => don't do anything
+              " else | call s:Verbose("Doesn't change!")
+            endif
           else
             call extend(sign_info, {'id': s:first_sign_id, 'what': what})
             let s:first_sign_id += 1
+            let cmds += ['silent! sign place '.(sign_info.id)
+                  \ .' line='.lnum
+                  \ .' name=CompilHints'.s:WorstType(sign_info.what)
+                  \ .' buffer='.bufnr]
           endif
-          let cmds += ['silent! sign place '.(sign_info.id)
-                \ .' line='.lnum
-                \ .' name=CompilHints'.s:WorstType(sign_info.what)
-                \ .' buffer='.bufnr]
+          " call s:Verbose('cmds(%2:%3): %1 ; %4 inc signs', cmds, bufname(bufnr), lnum, len(s:aync_signs[bufnr]))
         endfor
 
         call extend(s:signs_buffers, { bufnr : 1})
@@ -318,19 +344,16 @@ function! s:Supdate(...) abort
   else
     for [bufnr, file_with_errors] in items(errors)
       if !empty(file_with_errors)
-        " => Use map() in that case!
-        for [lnum, what] in items(file_with_errors)
-          let cmds += ['silent! sign place '.s:first_sign_id
-                \ .' line='.lnum
-                \ .' name=CompilHints'.s:WorstType(what)
-                \ .' buffer='.bufnr]
-          let s:first_sign_id += 1
-        endfor
+        let new_cmds = []
+        call map(items(file_with_errors),
+              \ "add(new_cmds, 'silent! sign place '.(s:first_sign_id+len(new_cmds)).' line='.v:val[0].' name=CompilHints'.s:WorstType(v:val[1]).' buffer='.bufnr)")
+        let s:first_sign_id += len(new_cmds)
         call extend(s:signs_buffers, { bufnr : 1})
+        let cmds += new_cmds
       endif
     endfor
   endif
-  exe join(cmds, "\n")
+  call s:execute(cmds)
   let s:signs=range(s:k_first_sign_id, s:first_sign_id)
 endfunction
 
