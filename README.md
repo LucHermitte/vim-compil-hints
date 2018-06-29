@@ -40,10 +40,10 @@ Provides:
    required anymore
 
 Listens/reacts on:
- * `:make`:, `:grep`:, `:vimgrep`:, `:cscope`:, `:cfile`:, `:cgetfile`:, `:helpgrep`:, `:cexpr`:, `:cgetexpr`:, `:cbuffer`:, `:cgetbuffer`
- * `:grepadd`:, `:vimgreadd`:, `:caddfile`:, `:caddexpr`:, `:caddbuffer`
- * `:copen`:, `:cclose`:, `:quit`, and anything that makes a qf window appears
- * `:cnewer`:, `:colder`
+ * `:make`, `:grep`, `:vimgrep`, `:cscope`, `:cfile`, `:cgetfile`, `:helpgrep`, `:cexpr`, `:cgetexpr`, `:cbuffer`, `:cgetbuffer`
+ * `:grepadd`, `:vimgreadd`, `:caddfile`, `:caddexpr`, `:caddbuffer`
+ * `:copen`, `:cclose`, `:quit`, and anything that makes a qf window appears
+ * `:cnewer`, `:colder`
  * `:call setqflist()`
 
 ## Demo
