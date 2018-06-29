@@ -292,6 +292,7 @@ function! s:Supdate(...) abort
     let s:qf_length = len(qflist)
     call s:Sclear()
     let s:aync_signs = {}
+    call s:Verbose("Starts a new session for %1 elements", s:qf_length)
   endif
 
   let qflist = filter(qflist, 'v:val.bufnr>0')
