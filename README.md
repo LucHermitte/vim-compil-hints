@@ -48,9 +48,14 @@ Listens/reacts on:
 
 ## Demo
 
-TODO: Here is a little screencast to see how things are displayed with vim-compil-hints.
+Here is a little screencast to see how things are displayed with vim-compil-hints.
 
 ![vim-compil-hints demo](doc/screencast-vim-compil-hints.gif "vim-compil-hints demo")
+
+Note: You may observe that `:colder` suffers an important slow down in the
+screencast (made on a slow VM). In order to workaround it, I could have set
+`g:compil_hints.harsh_signs_removal_enabled` to 1. I'll try to see if there
+isn't a better method.
 
 ## Options
 
@@ -177,6 +182,7 @@ Needs to be set in the `.vimrc`.
 - WIP: Permit to inject a different text to display in balloons (in grepping cases)
 - Add a real option to inject `linehl` to signs
 - Clean cached contexts from qf list no longer available with `c:older`
+- Speed up sign unplacing, which is oddly much slower that placing signs.
 
 ## Notes and other implementation details
 * It doesn't copy `getqflist()` for balloon, but always fetch the last version
