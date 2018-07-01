@@ -5,7 +5,7 @@
 " Version:      1.1.0
 let s:k_version = 110
 " Created:      10th Apr 2012
-" Last Update:  29th Jun 2018
+" Last Update:  02nd Jul 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -122,7 +122,7 @@ function! lh#compil_hints#update(...) abort
   else
     call s:Verbose("update(%1)", a:000)
     if s:UseSigns()
-      call call('s:Supdate', a:000)
+      let s:stats += [lh#time#bench('call', function('s:Supdate'), a:000)]
     endif
   endif
 endfunction
@@ -187,7 +187,8 @@ endfunction
 " # Signs {{{2
 " Function: Sstart() {{{3
 function! s:Sstart() abort
-  call s:Supdate('start')
+  " call s:Supdate('start')
+  let s:stats += [lh#time#bench(function('s:Supdate'), 'start')]
 endfunction
 
 " Function: Sstop() {{{3
@@ -203,14 +204,11 @@ function! s:Sclear() abort
         exe 'sign unplace * buffer='.b
       endif
     endfor
-  elseif exists('*execute')
-    " Should be fast enough => TODO: bench!!!
-    call execute(map(s:signs, '"sign unplace ".v:val'))
   else
-    " This is really slow...
-    for s in s:signs
-      silent! exe 'sign unplace '.(s)
-    endfor
+    " It still isn't fast enough. Should we add the buffer number? Or
+    " may be find a way to not add signs on buffers until they're
+    " loaded? (which means: no need to unplace)
+    call s:execute(map(s:signs, '"sign unplace ".v:val'))
   endif
   let s:signs         = []
   let s:signs_buffers = {}
@@ -262,7 +260,9 @@ let s:k_first_sign_id = 27000  " Initial value
 " todo: use int max
 let s:qf_length       = 10000000000000
 let s:aync_signs = {}
+let s:stats  = []
 function! s:Supdate(...) abort
+  let s:stats += ['update('.string(a:000).')']
   call lh#assert#true(g:compil_hints.activated)
   " if !g:compil_hints.displayed | return | endif
 
@@ -290,13 +290,15 @@ function! s:Supdate(...) abort
     " This may also match a situation where the qf list is reset to nothing
     " before an asynchronous filling => let's clear everything
     let s:qf_length = len(qflist)
-    call s:Sclear()
+    let s:stats += ['clear done in '.string(lh#time#bench(function('s:Sclear')))]
     let s:aync_signs = {}
     call s:Verbose("Starts a new session for %1 elements", s:qf_length)
   endif
 
   let qflist = filter(qflist, 'v:val.bufnr>0')
-  let errors = s:ReduceQFList(qflist)
+  " let errors = s:ReduceQFList(qflist)
+  let [errors, t] = lh#time#bench(function('s:ReduceQFList'), (qflist))
+  let s:stats += ['s:Reduce: '.string(t)]
 
   let s:signs_buffers = {}
 
@@ -354,7 +356,9 @@ function! s:Supdate(...) abort
       endif
     endfor
   endif
-  call s:execute(cmds)
+  " call s:execute(cmds)
+  let [d,t] = lh#time#bench(s:execute, cmds)
+  let s:stats += [len(cmds). ' commands executed in '.string(t)]
   let s:signs=range(s:k_first_sign_id, s:first_sign_id)
 endfunction
 
