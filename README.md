@@ -14,7 +14,7 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
    when supported by Vim.
  * Works out of the box in synchronous and asynchronous compilation and
    grepping. IOW, asynchronous compilation plugins don't require to do anything
-   to update the ign placed by compil-hints.
+   to update the signs placed by compil-hints.
  * Multiple issues happening on a same line are merged together, the highest
    error level is kept (_error_ > _warning_ > _note_ > _context_), even when
    compilation/grep is asynchronous.
