@@ -97,8 +97,8 @@ required from here
 ```
 
 #### `(bpg):compil_hints.harsh_signs_removal_enabled`
-Improves greatly the time required to remove signs. However, this options does
-remove all signs in a buffer, even the one not placed by compil-hints.
+Improves greatly the time required to remove signs. However, this option does
+remove all signs in a buffer, even the ones not placed by compil-hints.
 
 boolean: 1/0; default: `! exists('*execute')` => false with recent versions of
 Vim
