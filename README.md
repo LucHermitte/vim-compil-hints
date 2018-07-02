@@ -61,7 +61,7 @@ unplacing execution by a 1200 times factor. It's likelly to still be slow when
 all the buffers where thousands of signs are loaded.
 
 In order to workaround it, we could have set
-[`g:compil_hints.harsh_signs_removal_enabled`](#bpggompil_hintsharsh_signs_removal_enabled)
+[`g:compil_hints.harsh_signs_removal_enabled`](#bpgompil_hintsharsh_signs_removal_enabled)
 to 1. Alas, it will remove signs placed by other plugins as well.
 
 ## Options
