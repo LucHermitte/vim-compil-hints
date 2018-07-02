@@ -207,6 +207,7 @@ endfunction
 
 " Function: Sclear() {{{3
 function! s:Sclear() abort
+  call s:Verbose("Remove %1 signs", len(s:signs_undo))
   if lh#option#get('compil_hints.harsh_signs_removal_enabled', !exists('*execute'))
     for b in keys(s:signs_buffers)
       if buflisted(b+0) " need to convert the key (stored as a string) to a number
@@ -323,7 +324,6 @@ function! s:Supdate(...) abort
   " - "id" numbers shall not restart from scratch either.
   " Otherwise, we'll register a lot of signs simultaneously
   let cmds = []
-  let s:signs_undo = []
   if cmd =~ 'add'
     for [bufnr, file_with_errors] in items(errors)
       if !empty(file_with_errors)
