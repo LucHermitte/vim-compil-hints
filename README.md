@@ -12,6 +12,9 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
    [_signs_](http://vimhelp.appspot.com/sign.txt.html#signs) and/or
    [_balloons_](http://vimhelp.appspot.com/debugger.txt.html#balloon%2deval) --
    when supported by Vim.
+ * Works out of the box in synchronous and asynchronous compilation and
+   grepping. IOW, asynchronous compilation plugins don't require to do anything
+   to update the ign placed by compil-hints.
  * Multiple issues happening on a same line are merged together, the highest
    error level is kept (_error_ > _warning_ > _note_ > _context_), even when
    compilation/grep is asynchronous.
@@ -22,8 +25,6 @@ The information is extracted from the [quickfix list](http://vimhelp.appspot.com
    [`:caddexpr`](http://vimhelp.appspot.com/quickfix.txt.html#%3acaddexpr),
    [`:grepadd`](http://vimhelp.appspot.com/quickfix.txt.html#%3agrepadd)...
 
-   IOW, plugins that update the quickfix list don't need  to explicitly refresh
-   the signs by calling `lh#compil_hints#update()` anymore since version 1.1.0.
  * Closing and opening the qf-window will activate and deactivate signs and
    balloons. IOW, when enabled, signs and balloons will be displayed only when
    the quickfix window is opened.
@@ -46,6 +47,8 @@ Listens/reacts on:
  * `:cnewer`, `:colder`
  * `:call setqflist()`
 
+ IOW, plugins that update the quickfix list don't need  to explicitly refresh
+ the signs by calling `lh#compil_hints#update()` anymore since version 1.1.0.
 ## Demo
 
 Here is a little screencast to see how things are displayed with vim-compil-hints.
@@ -186,6 +189,10 @@ Needs to be set in the `.vimrc`.
 - WIP: Permit to inject a different text to display in balloons (in grepping cases)
 - Add a real option to inject `linehl` to signs
 - Clean cached contexts from qf list no longer available with `c:older`
+- When the qf-list isn't opened automatically at the end of the compilation,
+  it's more tricky to remove the signs as `:cclose` doesn't do anything.
+- Improve the speed of `s:ReduceQFList` -- which is the slowest function of the
+  plugin
 
 ## Notes and other implementation details
 * It doesn't copy `getqflist()` for balloon, but always fetch the last version
