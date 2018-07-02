@@ -83,7 +83,7 @@ Requires Vim to be compiled with
 [`+signs`](http://vimhelp.appspot.com/various.txt.html#%2bsigns) support.
 
 #### `g:compil_hints.autostart`
-When sets, the plugin is automatically started -- boolean: 1/[0]
+When sets, the plugin is automatically started -- boolean: [1]/0
 
 Needs to be set in the `.vimrc`.
 
