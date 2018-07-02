@@ -2,10 +2,10 @@
 " File:         plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.1.0
-let s:k_version = 110
+" Version:      1.1.1
+let s:k_version = 111
 " Created:      10th Apr 2012
-" Last Update:  26th Jun 2018
+" Last Update:  02nd Jul 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -40,8 +40,6 @@ let s:k_version = 110
 "       order to automagically rely on vim to update the line numbers.
 " TODO:
 "       Handle local options for balloon use
-"       When the quickfix list changes (background compilation with BTW), the
-"       balloons stop displaying anything.
 " }}}1
 "=============================================================================
 
@@ -51,7 +49,7 @@ if &cp || (exists("g:loaded_compil_hints")
       \ && !exists('g:force_reload_compil_hints'))
   finish
 endif
-if  !has('balloon_eval') && !has('signs')
+if  (!has('balloon_eval') && !has('signs')) || ! lh#has#vkey()
   " Necessary requirements aren't fulfilled
   finish
 endif

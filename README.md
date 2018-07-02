@@ -52,10 +52,14 @@ Here is a little screencast to see how things are displayed with vim-compil-hint
 
 ![vim-compil-hints demo](doc/screencast-vim-compil-hints.gif "vim-compil-hints demo")
 
-Note: You may observe that `:colder` suffers an important slow down in the
-screencast (made on a slow VM). In order to workaround it, I could have set
-`g:compil_hints.harsh_signs_removal_enabled` to 1. I'll try to see if there
-isn't a better method.
+Note: You should observe that `:colder` suffers an important slow down in the
+screencast (made on a slow VM). Since that screencast, I've improved the signs
+unplacing execution by a 1200 times factor. It's likelly to still be slow when
+all the buffers where thousands of signs are loaded.
+
+In order to workaround it, we could have set
+[`g:compil_hints.harsh_signs_removal_enabled`](#gbpgompil_hintsharsh_signs_removal_enabled)
+to 1. Alas, it will remove signs placed by other plugins as well.
 
 ## Options
 
@@ -150,7 +154,7 @@ Needs to be set in the `.vimrc`.
 
 ## Requirements / Installation
 
-  * Requirements: Vim 7.+,
+  * Requirements: Vim 7.2.295+,
     [`+balloon_eval`](http://vimhelp.appspot.com/various.txt.html#%2bballoon_eval),
     [`+signs`](http://vimhelp.appspot.com/various.txt.html#%2bsigns),
     [lh-vim-lib](http://github.com/LucHermitte/lh-vim-lib) 4.5.0.
@@ -182,7 +186,6 @@ Needs to be set in the `.vimrc`.
 - WIP: Permit to inject a different text to display in balloons (in grepping cases)
 - Add a real option to inject `linehl` to signs
 - Clean cached contexts from qf list no longer available with `c:older`
-- Speed up sign unplacing, which is oddly much slower that placing signs.
 
 ## Notes and other implementation details
 * It doesn't copy `getqflist()` for balloon, but always fetch the last version
@@ -190,6 +193,8 @@ Needs to be set in the `.vimrc`.
 
 
 ## History
+* V 1.1.1
+    * Improve sign unplacing speed
 * V 1.1.0.
     * Automatically activate the signs and balloons on quickfix related
       commands, whether the compilation is synchronous or asynchronous.

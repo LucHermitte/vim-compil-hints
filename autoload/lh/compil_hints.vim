@@ -2,8 +2,8 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.1.0
-let s:k_version = 110
+" Version:      1.1.1
+let s:k_version = 111
 " Created:      10th Apr 2012
 " Last Update:  02nd Jul 2018
 " License:      GPLv3
@@ -22,7 +22,6 @@ let s:k_version = 110
 "
 "
 " TODO:
-" - check if this is enough for plugins that do asynchronous compilation
 " - support loclist?
 " }}}1
 "=============================================================================
@@ -71,6 +70,7 @@ function! s:opt(key, default) abort
 endfunction
 
 " # Miscelleanous {{{2
+" Function: s:execute(list) {{{3
 if exists('*execute')
   let s:execute = function('execute')
 else
@@ -80,6 +80,14 @@ else
     endfor
   endfunction
 endif
+
+" Function: s:function(fname) {{{3
+function! s:function(fname) abort
+  if !exists("s:SNR")
+    let s:SNR=matchstr(expand('<sfile>'), '<SNR>\d\+_\zefunction$')
+  endif
+  return function(s:SNR.a:fname)
+endfunction
 
 "------------------------------------------------------------------------
 " ## Exported functions {{{1
@@ -122,7 +130,7 @@ function! lh#compil_hints#update(...) abort
   else
     call s:Verbose("update(%1)", a:000)
     if s:UseSigns()
-      let s:stats += [lh#time#bench('call', function('s:Supdate'), a:000)]
+      let s:stats += [lh#time#bench('call', s:function('Supdate'), a:000)]
     endif
   endif
 endfunction
@@ -137,6 +145,7 @@ function! s:Init() abort
   " Initialize internal variables for Signs
   let s:signs         = get(s:, 'signs', [])
   let s:signs_buffers = get(s:, 'signs_buffers', {})
+  let s:signs_undo    = get(s:, 'signs_undo', [])
 
   " Highlighting
   " - define sign texts, or icons
@@ -188,7 +197,7 @@ endfunction
 " Function: Sstart() {{{3
 function! s:Sstart() abort
   " call s:Supdate('start')
-  let s:stats += [lh#time#bench(function('s:Supdate'), 'start')]
+  let s:stats += [lh#time#bench(s:function('Supdate'), 'start')]
 endfunction
 
 " Function: Sstop() {{{3
@@ -205,12 +214,17 @@ function! s:Sclear() abort
       endif
     endfor
   else
-    " It still isn't fast enough. Should we add the buffer number? Or
-    " may be find a way to not add signs on buffers until they're
-    " loaded? (which means: no need to unplace)
-    call s:execute(map(s:signs, '"sign unplace ".v:val'))
+    " `sign unplace {id}`  is 12500 times slower on 22900 signs than
+    " `sign unplace {id} buffer={bid}`
+    " It's likelly a consequence that the related files may not all be
+    " loaded.
+    " I don't know yet, whether unplacing that may signs from loaded
+    " buffers will incur a similar performance slow down.
+    " call s:execute(map(s:signs, '"sign unplace ".v:val'))
+    call s:execute(s:signs_undo)
   endif
   let s:signs         = []
+  let s:signs_undo    = []
   let s:signs_buffers = {}
   let s:first_sign_id = s:k_first_sign_id
 endfunction
@@ -264,7 +278,6 @@ let s:stats  = []
 function! s:Supdate(...) abort
   let s:stats += ['update('.string(a:000).')']
   call lh#assert#true(g:compil_hints.activated)
-  " if !g:compil_hints.displayed | return | endif
 
   let qflist = getqflist()
 
@@ -290,14 +303,14 @@ function! s:Supdate(...) abort
     " This may also match a situation where the qf list is reset to nothing
     " before an asynchronous filling => let's clear everything
     let s:qf_length = len(qflist)
-    let s:stats += ['clear done in '.string(lh#time#bench(function('s:Sclear')))]
+    let s:stats += ['unplacing of '.len(s:signs).'signs done in '.string(lh#time#bench(s:function('Sclear')))]
     let s:aync_signs = {}
     call s:Verbose("Starts a new session for %1 elements", s:qf_length)
   endif
 
   let qflist = filter(qflist, 'v:val.bufnr>0')
   " let errors = s:ReduceQFList(qflist)
-  let [errors, t] = lh#time#bench(function('s:ReduceQFList'), (qflist))
+  let [errors, t] = lh#time#bench(s:function('ReduceQFList'), (qflist))
   let s:stats += ['s:Reduce: '.string(t)]
 
   let s:signs_buffers = {}
@@ -310,6 +323,7 @@ function! s:Supdate(...) abort
   " - "id" numbers shall not restart from scratch either.
   " Otherwise, we'll register a lot of signs simultaneously
   let cmds = []
+  let s:signs_undo = []
   if cmd =~ 'add'
     for [bufnr, file_with_errors] in items(errors)
       if !empty(file_with_errors)
@@ -338,18 +352,22 @@ function! s:Supdate(...) abort
                   \ .' name=CompilHints'.s:WorstType(sign_info.what)
                   \ .' buffer='.bufnr]
           endif
+          let s:signs_undo += ['silent! sign unplace '.(sign_info.id).' buffer='.bufnr]
           " call s:Verbose('cmds(%2:%3): %1 ; %4 inc signs', cmds, bufname(bufnr), lnum, len(s:aync_signs[bufnr]))
         endfor
 
         call extend(s:signs_buffers, { bufnr : 1})
       endif
     endfor
+    let s:signs_undo = lh#list#unique_sort(s:signs_undo)
   else
     for [bufnr, file_with_errors] in items(errors)
       if !empty(file_with_errors)
         let new_cmds = []
-        call map(items(file_with_errors),
-              \ "add(new_cmds, 'silent! sign place '.(s:first_sign_id+len(new_cmds)).' line='.v:val[0].' name=CompilHints'.s:WorstType(v:val[1]).' buffer='.bufnr)")
+        let new_cmds = map(items(file_with_errors),
+              \ "'silent! sign place '.(s:first_sign_id+v:key).' line='.v:val[0].' name=CompilHints'.s:WorstType(v:val[1]).' buffer='.bufnr")
+        let s:signs_undo += map(items(file_with_errors),
+              \ '"silent! sign unplace ".(s:first_sign_id+v:key)." buffer=".bufnr')
         let s:first_sign_id += len(new_cmds)
         call extend(s:signs_buffers, { bufnr : 1})
         let cmds += new_cmds
@@ -358,8 +376,10 @@ function! s:Supdate(...) abort
   endif
   " call s:execute(cmds)
   let [d,t] = lh#time#bench(s:execute, cmds)
-  let s:stats += [len(cmds). ' commands executed in '.string(t)]
   let s:signs=range(s:k_first_sign_id, s:first_sign_id)
+  if cmd !~ 'add'
+    let s:stats += [len(cmds). ' commands executed in '.string(t).' for '.len(s:signs).' signs placed']
+  endif
 endfunction
 
 " # Ballons {{{2
