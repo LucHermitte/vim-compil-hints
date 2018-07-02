@@ -58,9 +58,9 @@ Here is a little screencast to see how things are displayed with vim-compil-hint
 Note: You should observe that `:colder` suffers an important slow down in the
 screencast (made on a slow VM). Since that screencast, I've improved the signs
 unplacing execution by a 1200 times factor. It's likelly to still be slow when
-all the buffers where thousands of signs are loaded.
+all the buffers containining thousands of signs are loaded.
 
-In order to workaround it, we could have set
+In order to workaround it, I could have set
 [`g:compil_hints.harsh_signs_removal_enabled`](#bpgcompil_hintsharsh_signs_removal_enabled)
 to 1. Alas, it will remove signs placed by other plugins as well.
 
@@ -191,8 +191,8 @@ Needs to be set in the `.vimrc`.
 - Clean cached contexts from qf list no longer available with `c:older`
 - When the qf-list isn't opened automatically at the end of the compilation,
   it's more tricky to remove the signs as `:cclose` doesn't do anything.
-- Improve the speed of `s:ReduceQFList` -- which is the slowest function of the
-  plugin
+- Continue to improve the speed of `s:ReduceQFList` -- which is the slowest
+  function of the plugin along with `s:WorksType`
 
 ## Notes and other implementation details
 * It doesn't copy `getqflist()` for balloon, but always fetch the last version
@@ -201,7 +201,7 @@ Needs to be set in the `.vimrc`.
 
 ## History
 * V 1.1.1
-    * Improve sign unplacing speed
+    * Improve sign placing and unplacing speed
 * V 1.1.0.
     * Automatically activate the signs and balloons on quickfix related
       commands, whether the compilation is synchronous or asynchronous.

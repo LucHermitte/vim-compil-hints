@@ -233,12 +233,19 @@ endfunction
 " Function: s:ReduceQFList() {{{3
 " Merges QF list inputs to have one entry per file+line_number
 function! s:qf_type(qf, context_re) abort
+  " This function takes more than half of ReduceQFList execution time
   let type =
         \   (a:qf.type ==? 'w' || a:qf.text =~? '^\swarning:') ? 'Warning'
         \ : (a:qf.text =~? '^\s*note:')                        ? 'Note'
         \ : (a:qf.text =~? a:context_re)                       ? 'Context'
         \ : (a:qf.type ==? 'e' || a:qf.text =~? '^\serror:')   ? 'Error'
         \ :                                                      'Here'
+  "let type =
+  "      \   (a:qf.type ==? 'w' || match(a:qf.text, '\c^\swarning:')>=0)   ? 'Warning'
+  "      \ : match(a:qf.text, '\c^\s*note:') >= 0                          ? 'Note'
+  "      \ : match(a:qf.text, '\c'. a:context_re) >= 0                     ? 'Context'
+  "      \ : (a:qf.type ==? 'e' || match(a:qf.text, '\c^\serror:') >= 0)   ? 'Error'
+  "      \ :                                                                 'Here'
   return type
 endfunction
 
@@ -249,7 +256,17 @@ function! s:ReduceQFList(qflist) abort
   let context_re = lh#option#get('compil_hints.context_re', '^\s*instantiated from\|within this context\|required from here')
   let errors  = {}
 
-  call map(a:qflist, 'extend(lh#dict#need_ref_on(errors, [v:val.bufnr, get(v:val,"lnum",-1)], {}), {get(v:val, "text") : s:qf_type(v:val, context_re)})')
+  " While this one-liner works, it implies many computions over and over
+  "   let errors_ref = {}
+  "   call map(a:qflist, 'extend(lh#dict#need_ref_on(errors_ref, [v:val.bufnr, get(v:val,"lnum",-1)], {}), {get(v:val, "text") : s:qf_type(v:val, context_re)})')
+  " => First build the buffer list, then the line number for each buffer, and
+  " eventually the complete information required
+  let buffers = lh#list#unique_sort(lh#list#get(a:qflist, 'bufnr'))
+  call map(buffers, 'extend(errors, {v:val: {}})')
+  call map(copy(a:qflist), 'extend(errors[v:val.bufnr], {get(v:val,"lnum",-1): {}})')
+  call map(copy(a:qflist), 'extend(errors[v:val.bufnr][get(v:val,"lnum",-1)], {get(v:val, "text") : s:qf_type(v:val, context_re)})')
+
+  " call lh#assert#value(errors_ref).eq(errors)
 
   "for qf in a:qflist
   "  let type = s:qf_type(qf, context_re)
