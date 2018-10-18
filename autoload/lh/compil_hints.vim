@@ -69,6 +69,10 @@ function! s:opt(key, default) abort
   return lh#option#get('compil_hints.'.a:key, a:default, 'g')
 endfunction
 
+function! s:has_unplace_all_in_buffer() abort
+  return lh#has#patch('patch-7.3.596')
+endfunction
+
 " # Miscelleanous {{{2
 " Function: s:function(fname) {{{3
 function! s:function(fname) abort
@@ -121,7 +125,7 @@ endfunction
 " Function: lh#compil_hints#update([cmd]) {{{2
 function! lh#compil_hints#update(...) abort
   call lh#assert#true(g:compil_hints.activated)
-  if get(a:, 1, '') =~ 'grep'
+  if s:UseBalloons() && get(a:, 1, '') =~ 'grep'
     " TODO: avoid to do it after each :grepadd
     call s:qf_context.set('balloon', lh#qf#get_title())
   endif
@@ -211,7 +215,7 @@ endfunction
 " Function: Sclear() {{{3
 function! s:Sclear() abort
   call s:Verbose("Remove %1 signs", len(s:signs_undo))
-  if lh#option#get('compil_hints.harsh_signs_removal_enabled', !exists('*execute'))
+  if lh#option#get('compil_hints.harsh_signs_removal_enabled', !exists('*execute')) && s:has_unplace_all_in_buffer()
     for b in keys(s:signs_buffers)
       if buflisted(b+0) " need to convert the key (stored as a string) to a number
         exe 'sign unplace * buffer='.b
