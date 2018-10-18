@@ -2,10 +2,10 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.1.1
-let s:k_version = 111
+" Version:      1.1.2
+let s:k_version = 112
 " Created:      10th Apr 2012
-" Last Update:  02nd Jul 2018
+" Last Update:  18th Oct 2018
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -58,7 +58,7 @@ endfunction
 
 " # Options       {{{2
 function! s:UseBalloons()
-  return has('balloon_eval') && get(g:compil_hints, 'use_balloons', 1)
+  return has('balloon_eval') && get(g:compil_hints, 'use_balloons', 1) && lh#has#properties_in_qf()
 endfunction
 
 function! s:UseSigns()
@@ -70,17 +70,6 @@ function! s:opt(key, default) abort
 endfunction
 
 " # Miscelleanous {{{2
-" Function: s:execute(list) {{{3
-if exists('*execute')
-  let s:execute = function('execute')
-else
-  function! s:execute(list) abort
-    for c in a:list
-      exe c
-    endfor
-  endfunction
-endif
-
 " Function: s:function(fname) {{{3
 function! s:function(fname) abort
   if !exists("s:SNR")
@@ -88,6 +77,18 @@ function! s:function(fname) abort
   endif
   return function(s:SNR.a:fname)
 endfunction
+
+" Function: s:execute(list) {{{3
+if exists('*execute')
+  let s:execute = function('execute')
+else
+  function! s:execute_int(list) abort
+    for c in a:list
+      exe c
+    endfor
+  endfunction
+  let s:execute = s:function('execute_int')
+endif
 
 "------------------------------------------------------------------------
 " ## Exported functions {{{1
@@ -139,7 +140,9 @@ endfunction
 " ## Internal functions {{{1
 " Function: s:Init() {{{2
 let s:pixmaps_dir = expand('<sfile>:p:h:h:h').'/pixmaps/'
-let s:qf_context = lh#qf#make_context_map(0)
+if lh#has#properties_in_qf()
+  let s:qf_context = lh#qf#make_context_map(0)
+endif
 
 function! s:Init() abort
   " Initialize internal variables for Signs
@@ -262,7 +265,7 @@ function! s:ReduceQFList(qflist) abort
   " => First build the buffer list, then the line number for each buffer, and
   " eventually the complete information required
   let buffers = lh#list#unique_sort(lh#list#get(a:qflist, 'bufnr'))
-  call map(buffers, 'extend(errors, {v:val: {}})')
+  call map(buffers, 'extend(errors, {string(v:val): {}})')
   call map(copy(a:qflist), 'extend(errors[v:val.bufnr], {get(v:val,"lnum",-1): {}})')
   call map(copy(a:qflist), 'extend(errors[v:val.bufnr][get(v:val,"lnum",-1)], {get(v:val, "text") : s:qf_type(v:val, context_re)})')
 
