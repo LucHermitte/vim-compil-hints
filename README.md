@@ -58,11 +58,14 @@ Here is a little screencast to see how things are displayed with vim-compil-hint
 Note: You should observe that `:colder` suffers an important slow down in the
 screencast (made on a slow VM). Since that screencast, I've improved the signs
 unplacing execution by a 1200 times factor. It's likelly to still be slow when
-all the buffers containining thousands of signs are loaded.
+all the buffers containining thousands of signs are loaded. With
+lh-compil-hints 2.2 and Vim 8.1.0614+, unplacing performances have improved,
+but I haven't measured the speed-up yet.
 
 In order to workaround it, I could have set
 [`g:compil_hints.harsh_signs_removal_enabled`](#bpgcompil_hintsharsh_signs_removal_enabled)
-to 1. Alas, it will remove signs placed by other plugins as well.
+to 1. Alas, it will remove signs placed by other plugins as well. Starting from
+Vim 8.1.0614+, this option is ignored.
 
 ## Options
 
@@ -97,6 +100,8 @@ required from here
 ```
 
 #### `(bpg):compil_hints.harsh_signs_removal_enabled`
+Up to Vim 8.1.0613. This options becomes useless and is ignored afterward.
+
 Improves greatly the time required to remove signs. However, this option does
 remove all signs in a buffer, even the ones not placed by compil-hints.
 
@@ -161,6 +166,7 @@ Needs to be set in the `.vimrc`.
     [`+balloon_eval`](http://vimhelp.appspot.com/various.txt.html#%2bballoon_eval),
     [`+signs`](http://vimhelp.appspot.com/various.txt.html#%2bsigns),
     [lh-vim-lib](http://github.com/LucHermitte/lh-vim-lib) 4.5.1.
+    Starting with Vim 8.1.0614+ plugin performances should greatly improve.
 
   * With [vim-addon-manager](https://github.com/MarcWeber/vim-addon-manager), install vim-compil-hints.
 

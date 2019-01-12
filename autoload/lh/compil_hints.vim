@@ -2,10 +2,10 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.1.2
-let s:k_version = 112
+" Version:      1.2.0
+let s:k_version = 120
 " Created:      10th Apr 2012
-" Last Update:  18th Oct 2018
+" Last Update:  11th Jan 2019
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -201,6 +201,13 @@ function! s:Init() abort
 endfunction
 
 " # Signs {{{2
+if exists('*sign_unplace')
+  let s:k_sign_group = 'lhcompilhints'
+  let s:k_group      = ' group='.s:k_sign_group
+else
+  let s:k_group      = ''
+endif
+
 " Function: Sstart() {{{3
 function! s:Sstart() abort
   " call s:Supdate('start')
@@ -215,7 +222,9 @@ endfunction
 " Function: Sclear() {{{3
 function! s:Sclear() abort
   call s:Verbose("Remove %1 signs", len(s:signs_undo))
-  if lh#option#get('compil_hints.harsh_signs_removal_enabled', !exists('*execute')) && s:has_unplace_all_in_buffer()
+  if exists('*sign_unplace')
+    call sign_unplace(s:k_sign_group)
+  elseif lh#option#get('compil_hints.harsh_signs_removal_enabled', !exists('*execute')) && s:has_unplace_all_in_buffer()
     for b in keys(s:signs_buffers)
       if buflisted(b+0) " need to convert the key (stored as a string) to a number
         exe 'sign unplace * buffer='.b
@@ -360,8 +369,9 @@ function! s:Supdate(...) abort
             let new_lvl = s:WorstType(what)
             if new_lvl != old_lvl
               let sign_info.what = what
-              let cmds += ['silent! sign unplace '.(sign_info.id)]
+              let cmds += ['silent! sign unplace '.(sign_info.id).s:k_group]
               let cmds += ['silent! sign place '.(sign_info.id)
+                    \ .s:k_group
                     \ .' line='.lnum
                     \ .' name=CompilHints'.new_lvl
                     \ .' buffer='.bufnr]
@@ -372,6 +382,7 @@ function! s:Supdate(...) abort
             call extend(sign_info, {'id': s:first_sign_id, 'what': what})
             let s:first_sign_id += 1
             let cmds += ['silent! sign place '.(sign_info.id)
+                  \ .s:k_group
                   \ .' line='.lnum
                   \ .' name=CompilHints'.s:WorstType(sign_info.what)
                   \ .' buffer='.bufnr]
@@ -389,7 +400,7 @@ function! s:Supdate(...) abort
       if !empty(file_with_errors)
         let new_cmds = []
         let new_cmds = map(items(file_with_errors),
-              \ "'silent! sign place '.(s:first_sign_id+v:key).' line='.v:val[0].' name=CompilHints'.s:WorstType(v:val[1]).' buffer='.bufnr")
+              \ "'silent! sign place '.(s:first_sign_id+v:key).s:k_group.' line='.v:val[0].' name=CompilHints'.s:WorstType(v:val[1]).' buffer='.bufnr")
         let s:signs_undo += map(items(file_with_errors),
               \ '"silent! sign unplace ".(s:first_sign_id+v:key)." buffer=".bufnr')
         let s:first_sign_id += len(new_cmds)

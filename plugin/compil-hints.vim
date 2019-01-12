@@ -2,10 +2,10 @@
 " File:         plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.1.1
-let s:k_version = 111
+" Version:      1.2.0
+let s:k_version = 120
 " Created:      10th Apr 2012
-" Last Update:  02nd Jul 2018
+" Last Update:  12th Jan 2019
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
