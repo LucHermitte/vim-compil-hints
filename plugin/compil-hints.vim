@@ -2,10 +2,10 @@
 " File:         plugin/compil-hints.vim    {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 "		<URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.2.0
-let s:k_version = 120
+" Version:      1.2.1
+let s:k_version = 121
 " Created:      10th Apr 2012
-" Last Update:  12th Jan 2019
+" Last Update:  16th Jan 2019
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description:
@@ -44,18 +44,21 @@ let s:k_version = 120
 "=============================================================================
 
 " Avoid global reinclusion {{{1
+let s:cpo_save=&cpo
+set cpo&vim
+
 if &cp || (exists("g:loaded_compil_hints")
       \ && (g:loaded_compil_hints >= s:k_version)
       \ && !exists('g:force_reload_compil_hints'))
+  let &cpo=s:cpo_save
   finish
 endif
 if  (!has('balloon_eval') && !has('signs')) || ! lh#has#vkey()
   " Necessary requirements aren't fulfilled
+  let &cpo=s:cpo_save
   finish
 endif
 let g:loaded_compil_hints = s:k_version
-let s:cpo_save=&cpo
-set cpo&vim
 " Avoid global reinclusion }}}1
 "------------------------------------------------------------------------
 " Commands and Mappings {{{1
