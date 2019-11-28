@@ -5,7 +5,7 @@
 " Version:      1.2.0
 let s:k_version = 120
 " Created:      10th Apr 2012
-" Last Update:  11th Jan 2019
+" Last Update:  28th Nov 2019
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -431,12 +431,17 @@ function! s:Bstop() abort
   endif
 endfunction
 
+" Function: lh#compil_hints#set_balloon_format(format_lambda) {{{3
+" The {format_lambda} will be passed to `map(qf, format_lambda)`
+function! lh#compil_hints#set_balloon_format(format_lambda) abort
+  call s:qf_context.set('balloon', a:format_lambda)
+endfunction
+
 " Function: lh#compil_hints#ballon_expr() {{{3
 function! lh#compil_hints#ballon_expr() abort
   " Question: what'll be the id after cnewer/colder?
   "     <<If "nr" is not present then the current quickfix list is used.>>
   " -> looks like it'll be OK!
-  let ctx = s:qf_context.get('balloon')
 
   " Every time a file is updated, the dictionary returned by getqflist() is
   " updated regarding line numbers. As such, We cannot cache anything.
@@ -444,11 +449,13 @@ function! lh#compil_hints#ballon_expr() abort
   "
   " do we need to cache the info obtained ?
   let qflist = getqflist()
+  call map(qflist, 'extend(v:val, {"key": v:key})')
   let crt_qf = filter(qflist, 'v:val.bufnr == '.v:beval_bufnr.' && v:val.lnum == '.v:beval_lnum)
-  if !empty(ctx) && !empty(crt_qf)
-    return ctx
+  let l:Ctx = s:qf_context.get('balloon')
+  if empty(l:Ctx)
+    let l:Ctx = 'v:val.text'
   endif
-  let crt_text = join(lh#list#unique_sort2(map(copy(crt_qf), 'v:val.text')), "\n")
+  let crt_text = join(lh#list#unique_sort2(map(copy(crt_qf), l:Ctx)), "\n")
   return crt_text
 endfunction
 

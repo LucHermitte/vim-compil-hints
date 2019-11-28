@@ -160,6 +160,34 @@ use depending on the level:
 
 Needs to be set in the `.vimrc`.
 
+#### baloon format - v1.3.0
+
+We can have a fine control on the actual balloon expression for each quick-fix
+entry.
+
+This is done by injecting a _lambda_ (or more precisally an expression passed
+as the second parameter to
+[`map()`](http://vimhelp.appspot.com/eval.txt.html#map%28%29)). The lambda is
+applied to the items returned by
+[`getqflist()`](http://vimhelp.appspot.com/eval.txt.html#getqflist%28%29).
+
+__Note:__ Unlike other times, the _key variable_
+([`v:key`](http://vimhelp.appspot.com/eval.txt.html#v%3akey)) cannot be used
+directly. Instead, its value can be checked in `v:val.key`.
+
+__Example:__ In lh-cpp implementation of `:Ancestors` command I do the
+following. Given `l:balloons` that contains the list of the exact text to
+display for each quickfix item, I execute:
+
+```vim
+if lh#has#properties_in_qf()
+call setqflist([], 'a', {'title': current.name . ' base classes'})
+    if lh#has#plugin('autoload/lh/compil_hints.vim')
+      call lh#compil_hints#set_balloon_format({k, v -> l:current.name . l:balloons[v.key]})
+    endif
+endif
+```
+
 ## Requirements / Installation
 
   * Requirements: Vim 7.2.295+,
@@ -206,6 +234,8 @@ Needs to be set in the `.vimrc`.
 
 
 ## History
+* V 1.3.0
+    * Add control over balloon format
 * V 1.1.1
     * Improve sign placing and unplacing speed
 * V 1.1.0.
