@@ -5,7 +5,7 @@
 " Version:      1.2.0
 let s:k_version = 120
 " Created:      10th Apr 2012
-" Last Update:  28th Nov 2019
+" Last Update:  20th Dec 2019
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -127,7 +127,7 @@ function! lh#compil_hints#update(...) abort
   call lh#assert#true(g:compil_hints.activated)
   if s:UseBalloons() && get(a:, 1, '') =~ 'grep'
     " TODO: avoid to do it after each :grepadd
-    call s:qf_context.set('balloon', lh#qf#get_title())
+    call s:qf_context.set('balloon', string(lh#qf#get_title()))
   endif
   if ! get(g:compil_hints, 'displayed', 0)
     call lh#compil_hints#start()
