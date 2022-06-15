@@ -234,6 +234,9 @@ endif
 
 
 ## History
+* V 1.3.1
+    *  Add `g:compil_hints.prefer_xpm` option (defaults to 1) to tell to prefer
+       XPM (or textual sign otherwise) -- when XPM are available.
 * V 1.3.0
     * Add control over balloon format
 * V 1.1.1

@@ -2,10 +2,10 @@
 " File:         addons/lh-compil-hints/autoload/lh/compil_hints.vim {{{1
 " Author:       Luc Hermitte <EMAIL:hermitte {at} gmail {dot} com>
 "               <URL:http://github.com/LucHermitte/vim-compil-hints>
-" Version:      1.2.0
-let s:k_version = 120
+" Version:      1.3.1
+let s:k_version = 131
 " Created:      10th Apr 2012
-" Last Update:  20th Dec 2019
+" Last Update:  16th Jun 2022
 " License:      GPLv3
 "------------------------------------------------------------------------
 " Description/Installation/...:
@@ -156,7 +156,7 @@ function! s:Init() abort
 
   " Highlighting
   " - define sign texts, or icons
-  if has('gui_running') && (has('xpm') || has('xpm_w32'))
+  if has('gui_running') && (has('xpm') || has('xpm_w32')) && get(g:compil_hints, 'prefer_xpm', 1)
     " In that case, we don't care!
     " => No need to try to detect which glyphs are supported
     let [error, warning, note, ctx, here] = repeat(['>>'], 5)
@@ -316,6 +316,7 @@ function! s:Supdate(...) abort
   let qflist = getqflist()
 
   let cmd = get(a:, 1, '')
+  call s:Verbose('updating signs for "%1" command, and %2 qf entries', cmd, len(qflist))
   if cmd =~ 'add'
     if len(qflist) == 0
       let s:qf_length = len(qflist)
