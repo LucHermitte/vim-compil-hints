@@ -217,6 +217,13 @@ endif
     ```
 
 ## TO DO
+- Recent asynchronous compilation plugins will likelly use
+  [`setqflist()`](http://vimhelp.appspot.com/eval.txt.html#setqflist%28%29)
+  which doesn't trigger any event that vim-compil-hint could listen to
+  automatically display signs. These plugins will either need to explicitly
+  execute `:CompilHintsUpdate`, or to reopen the qf-window with
+  [`:copen`](http://vimhelp.appspot.com/quickfix.txt.html#%3acopen). Note that
+  if you manually (re)open the qf-window, signs will be updated.
 - Handle local options for balloon use: use/restore `b:bexpr`
 - Ask fontconfig `fc-list`, when recent enough, which UTF-8 codepoints could be used -> lh-vim-lib
 - Check the behaviour with encodings other than UTF-8.
